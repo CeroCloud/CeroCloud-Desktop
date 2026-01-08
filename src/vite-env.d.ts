@@ -36,12 +36,21 @@ interface ElectronAPI {
         getSalesToday: () => Promise<any[]>
         create: (sale: any) => Promise<any>
         cancel: (id: number) => Promise<any>
+        getByCustomerName: (name: string) => Promise<any[]>
     }
     suppliers: {
         getAll: () => Promise<any[]>
         getById: (id: number) => Promise<any>
         create: (supplier: any) => Promise<any>
         update: (id: number, supplier: any) => Promise<any>
+        delete: (id: number) => Promise<{ success: boolean }>
+    }
+    clients: {
+        getAll: () => Promise<any[]>
+        getById: (id: number) => Promise<any>
+        search: (term: string) => Promise<any[]>
+        create: (client: any) => Promise<any>
+        update: (id: number, client: any) => Promise<any>
         delete: (id: number) => Promise<{ success: boolean }>
     }
     database: {

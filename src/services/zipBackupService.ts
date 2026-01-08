@@ -1,7 +1,7 @@
 import JSZip from 'jszip'
 import { saveAs } from 'file-saver'
 import { secureEncryptionService } from './secureEncryptionService'
-import { Product, Category, Sale, Supplier, CompanySettings } from '@/types/database'
+import { Product, Category, Sale, Supplier, CompanySettings, Client } from '@/types/database'
 
 interface BackupMetadata {
     app: string
@@ -21,6 +21,7 @@ interface BackupData {
     categories: Category[]
     sales: Sale[]
     suppliers: Supplier[]
+    clients: Client[]
 }
 
 export const zipBackupService = {
@@ -41,6 +42,7 @@ export const zipBackupService = {
             const categories = await window.electronAPI.categories.getAll() as Category[]
             const sales = await window.electronAPI.sales.getAll() as Sale[]
             const suppliers = await window.electronAPI.suppliers.getAll() as Supplier[]
+            const clients = await window.electronAPI.clients.getAll() as Client[]
 
             // Obtener configuración 
             const settingsStr = localStorage.getItem('companySettings')
@@ -71,7 +73,8 @@ export const zipBackupService = {
                 products,
                 categories,
                 sales,
-                suppliers
+                suppliers,
+                clients
             }
             const databaseJson = JSON.stringify(databaseData, null, 2)
             const databaseContent = password
@@ -297,6 +300,7 @@ export const zipBackupService = {
             categoriesCount: number
             salesCount: number
             suppliersCount: number
+            clientsCount: number
             hasImages: boolean
             fileSize: string
         }
@@ -322,6 +326,7 @@ export const zipBackupService = {
                         categoriesCount: 0,
                         salesCount: 0,
                         suppliersCount: 0,
+                        clientsCount: 0,
                         hasImages: false,
                         fileSize: (file.size / 1024).toFixed(2) + ' KB'
                     }
@@ -350,6 +355,7 @@ export const zipBackupService = {
                 categoriesCount: data.categories?.length || 0,
                 salesCount: data.sales?.length || 0,
                 suppliersCount: data.suppliers?.length || 0,
+                clientsCount: data.clients?.length || 0,
                 hasImages: Object.keys(zip.files).some(f => f.startsWith('images/')),
                 fileSize: (file.size / 1024).toFixed(2) + ' KB'
             }

@@ -13,3 +13,11 @@ export function getImageSrc(imagePath?: string) {
     const cleanPath = imagePath.split(/[\\/]/).pop()
     return `cerocloud-image://${cleanPath}`
 }
+
+export function formatCurrency(amount: number) {
+    return new Intl.NumberFormat('es-GT', {
+        style: 'currency',
+        currency: 'GTQ',
+        minimumFractionDigits: 2
+    }).format(amount)
+}
