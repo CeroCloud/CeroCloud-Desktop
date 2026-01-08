@@ -1,0 +1,346 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+// @ts-nocheck
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { useEffect } from 'react'
+import { X, Image as ImageIcon, Loader2, Save } from 'lucide-react'
+import { productService } from '@/services/productService'
+import { Product } from '@/types/database'
+import { motion, AnimatePresence } from 'framer-motion'
+import { toast } from 'sonner'
+import { cn, getImageSrc } from '@/lib/utils'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { productSchema, type ProductFormValues } from '@/lib/validators'
+
+interface ProductFormProps {
+    product: Product | null
+    onClose: () => void
+}
+
+export function ProductForm({ product, onClose }: ProductFormProps) {
+    const {
+        register,
+        handleSubmit,
+        setValue,
+        watch,
+        reset,
+        formState: { errors, isSubmitting }
+    } = useForm<ProductFormValues>({
+        resolver: zodResolver(productSchema),
+        defaultValues: {
+            code: '',
+            name: '',
+            description: '',
+            category: '',
+            image: '',
+            price: 0,
+            cost: 0,
+            stock: 0,
+            min_stock: 0,
+            unit: 'unidad',
+        }
+    })
+
+    // Watch image for preview
+    const imagePreview = watch('image')
+
+    useEffect(() => {
+        if (product) {
+            reset({
+                code: product.code,
+                name: product.name,
+                description: product.description || '',
+                category: product.category || '',
+                image: product.image || '',
+                price: product.price,
+                cost: product.cost || 0,
+                stock: product.stock,
+                min_stock: product.min_stock,
+                unit: product.unit as any,
+            })
+        }
+    }, [product, reset])
+
+    const onSubmit = async (data: ProductFormValues) => {
+        try {
+            if (product?.id) {
+                await productService.update(product.id, data)
+                toast.success('Producto actualizado correctamente')
+            } else {
+                await productService.create(data)
+                toast.success('Producto creado correctamente')
+            }
+            onClose()
+        } catch (error) {
+            console.error('Error saving product:', error)
+            toast.error('Error al guardar el producto')
+        }
+    }
+
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        if (file) {
+            // @ts-ignore - Electron File object
+            const filePath = file.path
+
+            if (filePath) {
+                const toastId = toast.loading('Guardando imagen...')
+                try {
+                    const result = await window.electronAPI.products.saveImage(filePath)
+                    if (result.success && result.filename) {
+                        setValue('image', result.filename, { shouldDirty: true })
+                        toast.success('Imagen guardada', { id: toastId })
+                    } else {
+                        toast.error('Error al guardar imagen', { id: toastId })
+                    }
+                } catch (error) {
+                    console.error(error)
+                    toast.error('Error de sistema', { id: toastId })
+                }
+            }
+        }
+    }
+
+    return (
+        <AnimatePresence>
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+                {/* Backdrop */}
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    onClick={onClose}
+                    className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+                />
+
+                {/* Modal Window */}
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                    className="relative w-full max-w-2xl bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+                >
+                    {/* Header */}
+                    <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50 backdrop-blur z-10 sticky top-0">
+                        <div>
+                            <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                                {product ? 'Editar Producto' : 'Nuevo Producto'}
+                            </h2>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                                {product ? 'Modifica los detalles del producto' : 'Agrega un nuevo ítem al inventario'}
+                            </p>
+                        </div>
+                        <button
+                            onClick={onClose}
+                            className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50 rounded-xl transition-all"
+                        >
+                            <X className="w-5 h-5" />
+                        </button>
+                    </div>
+
+                    {/* Scrollable Content */}
+                    <div className="flex-1 overflow-y-auto p-6 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600">
+                        <form id="product-form" onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+
+                            {/* Image Upload Section */}
+                            <div className="flex gap-6 items-start">
+                                <div className="shrink-0">
+                                    <div className={cn(
+                                        "relative group w-32 h-32 rounded-2xl bg-gray-100 dark:bg-gray-700 border-2 border-dashed overflow-hidden flex items-center justify-center transition-colors",
+                                        imagePreview ? "border-primary/50" : "border-gray-300 dark:border-gray-600 hover:border-primary/50"
+                                    )}>
+                                        {imagePreview ? (
+                                            <img
+                                                src={getImageSrc(imagePreview)}
+                                                alt="Preview"
+                                                className="w-full h-full object-cover"
+                                            />
+                                        ) : (
+                                            <ImageIcon className="w-8 h-8 text-gray-400 group-hover:text-gray-500 transition-colors" />
+                                        )}
+
+                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                            <label className="cursor-pointer text-white text-xs font-medium text-center px-2 w-full h-full flex items-center justify-center">
+                                                Cambiar
+                                                <input
+                                                    type="file"
+                                                    accept="image/*"
+                                                    className="hidden"
+                                                    onChange={handleImageUpload}
+                                                />
+                                            </label>
+                                        </div>
+                                    </div>
+                                    {imagePreview && (
+                                        <button
+                                            type="button"
+                                            onClick={() => setValue('image', '', { shouldDirty: true })}
+                                            className="text-xs text-red-500 hover:text-red-600 mt-2 w-full text-center"
+                                        >
+                                            Eliminar
+                                        </button>
+                                    )}
+                                </div>
+
+                                <div className="flex-1 space-y-4">
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="col-span-2 sm:col-span-1">
+                                            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Nombre del Producto</label>
+                                            <input
+                                                type="text"
+                                                {...register('name')}
+                                                placeholder="Ej. Coca Cola 600ml"
+                                                className={cn(
+                                                    "w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-900 border focus:ring-2 transition-all outline-none",
+                                                    errors.name
+                                                        ? "border-red-300 focus:border-red-500 focus:ring-red-200"
+                                                        : "border-gray-200 dark:border-gray-700 focus:ring-primary/20 focus:border-primary"
+                                                )}
+                                            />
+                                            {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>}
+                                        </div>
+                                        <div className="col-span-2 sm:col-span-1">
+                                            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Código de Barras</label>
+                                            <input
+                                                type="text"
+                                                {...register('code')}
+                                                placeholder="Escanea o escribe..."
+                                                className={cn(
+                                                    "w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-900 border focus:ring-2 transition-all outline-none",
+                                                    errors.code
+                                                        ? "border-red-300 focus:border-red-500 focus:ring-red-200"
+                                                        : "border-gray-200 dark:border-gray-700 focus:ring-primary/20 focus:border-primary"
+                                                )}
+                                            />
+                                            {errors.code && <p className="text-red-500 text-xs mt-1">{errors.code.message}</p>}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Descripción (Opcional)</label>
+                                        <textarea
+                                            {...register('description')}
+                                            rows={2}
+                                            className="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none resize-none"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <hr className="border-gray-100 dark:border-gray-700" />
+
+                            {/* Details Grid */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                                <div className="col-span-2">
+                                    <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Categoría</label>
+                                    <input
+                                        type="text"
+                                        {...register('category')}
+                                        placeholder="Ej. Bebidas"
+                                        className="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none"
+                                    />
+                                </div>
+                                <div className="col-span-2">
+                                    <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Unidad de Medida</label>
+                                    <select
+                                        {...register('unit')}
+                                        className="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none appearance-none cursor-pointer"
+                                    >
+                                        <option value="unidad">Unidad (Pieza)</option>
+                                        <option value="kg">Kilogramo (kg)</option>
+                                        <option value="g">Gramo (g)</option>
+                                        <option value="l">Litro (l)</option>
+                                        <option value="ml">Mililitro (ml)</option>
+                                        <option value="m">Metro (m)</option>
+                                        <option value="caja">Caja</option>
+                                        <option value="paquete">Paquete</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Costo ($)</label>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        step="0.01"
+                                        {...register('cost')}
+                                        className="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none"
+                                    />
+                                    {errors.cost && <p className="text-red-500 text-xs mt-1">{errors.cost.message}</p>}
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-semibold text-primary uppercase tracking-wider mb-1">Precio Venta ($)</label>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        step="0.01"
+                                        {...register('price')}
+                                        className={cn(
+                                            "w-full px-4 py-2.5 rounded-xl bg-primary/5 dark:bg-primary/10 border text-primary font-bold focus:ring-2 transition-all outline-none",
+                                            errors.price
+                                                ? "border-red-300 focus:border-red-500"
+                                                : "border-primary/20 dark:border-primary/30 focus:ring-primary/20 focus:border-primary"
+                                        )}
+                                    />
+                                    {errors.price && <p className="text-red-500 text-xs mt-1">{errors.price.message}</p>}
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Stock Actual</label>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        {...register('stock')}
+                                        className={cn(
+                                            "w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-900 border focus:ring-2 transition-all outline-none",
+                                            errors.stock
+                                                ? "border-red-300 focus:border-red-500"
+                                                : "border-gray-200 dark:border-gray-700 focus:ring-primary/20 focus:border-primary"
+                                        )}
+                                    />
+                                    {errors.stock && <p className="text-red-500 text-xs mt-1">{errors.stock.message}</p>}
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Stock Mínimo</label>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        {...register('min_stock')}
+                                        className={cn(
+                                            "w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-900 border focus:ring-2 transition-all outline-none",
+                                            errors.min_stock
+                                                ? "border-red-300 focus:border-red-500"
+                                                : "border-gray-200 dark:border-gray-700 focus:ring-primary/20 focus:border-primary"
+                                        )}
+                                    />
+                                    {errors.min_stock && <p className="text-red-500 text-xs mt-1">{errors.min_stock.message}</p>}
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    {/* Footer Actions */}
+                    <div className="p-6 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 flex justify-end gap-3">
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className="px-5 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-xl transition-colors"
+                        >
+                            Cancelar
+                        </button>
+                        <button
+                            type="submit"
+                            form="product-form"
+                            disabled={isSubmitting}
+                            className="px-5 py-2.5 text-sm font-bold bg-primary text-white hover:bg-primary/90 rounded-xl shadow-lg shadow-primary/25 disabled:opacity-50 disabled:shadow-none transition-all flex items-center gap-2"
+                        >
+                            {isSubmitting ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                                <Save className="w-4 h-4" />
+                            )}
+                            {product ? 'Guardar Cambios' : 'Crear Producto'}
+                        </button>
+                    </div>
+                </motion.div>
+            </div>
+        </AnimatePresence>
+    )
+}
