@@ -118,6 +118,9 @@ export interface CompanySettings {
         prefix: string
         nextNumber: number
         disclaimer: string // Texto legal al final del ticket
+        paperSize?: 'a4' | 'ticket80mm'
+        headerImage?: string
+        footerImage?: string
     }
 
     // Inventario

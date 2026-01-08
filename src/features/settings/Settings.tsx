@@ -507,6 +507,66 @@ function SalesTab({ settings, setSettings }: SettingsTabProps) {
                         </div>
                     </div>
                 </div>
+
+                {/* Invoice Customization */}
+                <div>
+                    <SectionTitle title="Diseño de Factura" description="Personaliza el formato y apariencia." />
+                    <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-400 dark:border-gray-700 shadow-md space-y-6">
+
+                        {/* Paper Size */}
+                        <div className="flex items-center justify-between border-b border-gray-100 dark:border-gray-700 pb-6">
+                            <div>
+                                <h4 className="font-bold text-gray-900 dark:text-white text-sm">Tamaño de Papel</h4>
+                                <p className="text-xs text-gray-500">Elige entre formato estándar o ticket térmico.</p>
+                            </div>
+                            <div className="flex bg-gray-100 dark:bg-gray-900 rounded-lg p-1">
+                                <button
+                                    onClick={() => setSettings({ ...settings, invoice: { ...settings.invoice, paperSize: 'a4' } })}
+                                    className={cn(
+                                        "px-4 py-2 rounded-md text-sm font-bold transition-all flex items-center gap-2",
+                                        settings.invoice?.paperSize !== 'ticket80mm'
+                                            ? "bg-white dark:bg-gray-700 shadow-sm text-indigo-600 dark:text-indigo-400"
+                                            : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                                    )}
+                                >
+                                    <FileText className="w-4 h-4" />
+                                    Carta (A4)
+                                </button>
+                                <button
+                                    onClick={() => setSettings({ ...settings, invoice: { ...settings.invoice, paperSize: 'ticket80mm' } })}
+                                    className={cn(
+                                        "px-4 py-2 rounded-md text-sm font-bold transition-all flex items-center gap-2",
+                                        settings.invoice?.paperSize === 'ticket80mm'
+                                            ? "bg-white dark:bg-gray-700 shadow-sm text-indigo-600 dark:text-indigo-400"
+                                            : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                                    )}
+                                >
+                                    <Receipt className="w-4 h-4" />
+                                    Ticket 80mm
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Banners */}
+                        <div>
+                            <h4 className="font-bold text-gray-900 dark:text-white text-sm mb-4">Banners Personalizados</h4>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                <BannerUpload
+                                    label="Banner Superior (Cabecera)"
+                                    currentImage={settings.invoice?.headerImage}
+                                    onUpload={(base64: string) => setSettings({ ...settings, invoice: { ...settings.invoice, headerImage: base64 } })}
+                                    onRemove={() => setSettings({ ...settings, invoice: { ...settings.invoice, headerImage: undefined } })}
+                                />
+                                <BannerUpload
+                                    label="Banner Inferior (Pie de Página)"
+                                    currentImage={settings.invoice?.footerImage}
+                                    onUpload={(base64: string) => setSettings({ ...settings, invoice: { ...settings.invoice, footerImage: base64 } })}
+                                    onRemove={() => setSettings({ ...settings, invoice: { ...settings.invoice, footerImage: undefined } })}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             {/* Right Column: POS Behavior */}
@@ -1327,6 +1387,43 @@ function UpdatesTab() {
                     Ver historial de versiones completo
                 </a>
             </div>
+        </div>
+    )
+}
+
+function BannerUpload({ label, currentImage, onUpload, onRemove }: { label: string, currentImage?: string, onUpload: (data: string) => void, onRemove: () => void }) {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        if (file) {
+            if (file.size > 2 * 1024 * 1024) {
+                toast.error('La imagen debe ser menor a 2MB')
+                return
+            }
+            const reader = new FileReader()
+            reader.onloadend = () => onUpload(reader.result as string)
+            reader.readAsDataURL(file)
+        }
+    }
+    return (
+        <div className="border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-xl p-4 text-center relative group hover:border-indigo-500 hover:bg-indigo-50/10 transition-all">
+            <h5 className="font-bold text-xs text-gray-500 uppercase mb-3">{label}</h5>
+            {currentImage ? (
+                <div className="relative rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 bg-white">
+                    <img src={currentImage} className="h-24 w-full object-contain p-2" alt={label} />
+                    <button onClick={onRemove} className="absolute top-1 right-1 bg-red-100 text-red-600 p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-200" title="Eliminar imagen">
+                        <X className="w-4 h-4" />
+                    </button>
+                </div>
+            ) : (
+                <label className="cursor-pointer block py-6 hover:scale-105 transition-transform">
+                    <input type="file" accept="image/*" className="hidden" onChange={handleChange} />
+                    <div className="bg-indigo-50 dark:bg-indigo-900/30 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-2 text-indigo-500">
+                        <Upload className="w-6 h-6" />
+                    </div>
+                    <span className="text-sm font-bold text-gray-700 dark:text-gray-200">Subir Imagen</span>
+                    <p className="text-xs text-gray-400 mt-1">PNG, JPG (Max 2MB)</p>
+                </label>
+            )}
         </div>
     )
 }
