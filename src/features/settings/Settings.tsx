@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { UpdateInfo } from '@/services/updaterService'
 import {
     Building2,
     Upload,
@@ -46,7 +47,7 @@ import { RestoreWizard } from '@/components/backup/RestoreWizard'
 export function Settings() {
     const [settings, setSettings] = useState<CompanySettings>(companyService.getSettings())
     const [logoPreview, setLogoPreview] = useState(settings.logo || '')
-    const [activeTab, setActiveTab] = useState<'general' | 'sales' | 'inventory' | 'backups' | 'appearance' | 'about'>('general')
+    const [activeTab, setActiveTab] = useState<'general' | 'sales' | 'inventory' | 'backups' | 'appearance' | 'updates' | 'about'>('general')
     const [saving, setSaving] = useState(false)
     const [showBackupWizard, setShowBackupWizard] = useState(false)
     const [showRestoreWizard, setShowRestoreWizard] = useState(false)
@@ -99,6 +100,7 @@ export function Settings() {
         { id: 'sales', label: 'Ventas / POS', icon: CreditCard },
         { id: 'inventory', label: 'Inventario', icon: Package },
         { id: 'backups', label: 'Backups', icon: Database },
+        { id: 'updates', label: 'Actualizaciones', icon: RefreshCw },
         { id: 'appearance', label: 'Apariencia', icon: Palette },
     ]
 
@@ -167,6 +169,9 @@ export function Settings() {
                                 onOpenWizard={() => setShowBackupWizard(true)}
                                 onOpenRestoreWizard={() => setShowRestoreWizard(true)}
                             />
+                        )}
+                        {activeTab === 'updates' && (
+                            <UpdatesTab />
                         )}
                         {activeTab === 'appearance' && (
                             <AppearanceTab settings={settings} setSettings={setSettings} />
@@ -1071,5 +1076,257 @@ function Switch({ checked, onChange }: { checked: boolean; onChange: (checked: b
                 )}
             />
         </button>
+    )
+}
+
+function UpdatesTab() {
+    const [currentVersion, setCurrentVersion] = useState<string>('Cargando...')
+    const [checking, setChecking] = useState(false)
+    const [updateAvailable, setUpdateAvailable] = useState<UpdateInfo | null>(null)
+    const [autoCheckEnabled, setAutoCheckEnabled] = useState(true)
+
+    useEffect(() => {
+        // Obtener versión actual
+        if (window.electronAPI?.updater) {
+            window.electronAPI.updater.getCurrentVersion().then(v => {
+                setCurrentVersion(v)
+            }).catch(() => {
+                setCurrentVersion('1.0.0')
+            })
+        } else {
+            setCurrentVersion('1.0.0 (Dev)')
+        }
+    }, [])
+
+    const handleCheckUpdates = async () => {
+        if (!window.electronAPI?.updater) {
+            toast.info('Auto-updater no disponible en modo desarrollo')
+            return
+        }
+
+        setChecking(true)
+        setUpdateAvailable(null)
+
+        toast.loading('Verificando actualizaciones...', { id: 'check-update' })
+
+        try {
+            const result = await window.electronAPI.updater.checkForUpdates()
+
+            if (result.success && result.data?.updateInfo?.version) {
+                setUpdateAvailable(result.data.updateInfo)
+                toast.success(`¡Nueva versión ${result.data.updateInfo.version} disponible!`, {
+                    id: 'check-update',
+                })
+            } else {
+                toast.success('Ya estás en la última versión', {
+                    id: 'check-update',
+                })
+            }
+        } catch (error) {
+            toast.error(`Error: ${error instanceof Error ? error.message : String(error)}`, {
+                id: 'check-update',
+            })
+        } finally {
+            setChecking(false)
+        }
+    }
+
+    const handleToggleAutoCheck = async () => {
+        if (!window.electronAPI?.updater) return
+
+        const newValue = !autoCheckEnabled
+        setAutoCheckEnabled(newValue)
+
+        try {
+            await window.electronAPI.updater.setAutoCheck(newValue, 6)
+            toast.success(newValue ? 'Verificación automática activada' : 'Verificación automática desactivada')
+        } catch (error) {
+            console.error('Error al cambiar auto-check:', error)
+        }
+    }
+
+    const handleDownloadUpdate = async () => {
+        if (!window.electronAPI?.updater || !updateAvailable) return
+
+        toast.loading('Iniciando descarga...', { id: 'download-update' })
+
+        try {
+            await window.electronAPI.updater.downloadUpdate()
+            toast.dismiss('download-update')
+        } catch (error) {
+            toast.error(`Error al descargar: ${error instanceof Error ? error.message : String(error)}`, {
+                id: 'download-update',
+            })
+        }
+    }
+
+    return (
+        <div className="max-w-4xl mx-auto py-4 space-y-8">
+            {/* Header */}
+            <div className="text-center mb-8">
+                <h2 className="text-2xl font-black text-gray-900 dark:text-white">
+                    Actualizaciones de Software
+                </h2>
+                <p className="text-gray-500 dark:text-gray-400 mt-2 max-w-lg mx-auto">
+                    Mantén CeroCloud actualizado para acceder a las últimas funcionalidades y mejoras de seguridad.
+                </p>
+            </div>
+
+            {/* Current Version Card */}
+            <div className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl p-8 text-white relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full translate-x-1/3 -translate-y-1/3" />
+
+                <div className="relative z-10">
+                    <div className="flex items-center justify-between mb-6">
+                        <div>
+                            <p className="text-indigo-100 text-sm font-semibold mb-2">VERSIÓN ACTUAL</p>
+                            <h3 className="text-4xl font-black">v{currentVersion}</h3>
+                        </div>
+                        <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
+                            <Package className="w-8 h-8" />
+                        </div>
+                    </div>
+
+                    {updateAvailable ? (
+                        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                            <div className="flex items-start justify-between gap-4">
+                                <div>
+                                    <p className="text-sm font-semibold mb-1">🎉 Nueva versión disponible</p>
+                                    <p className="text-indigo-100 text-sm">
+                                        v{updateAvailable.version} • {updateAvailable.releaseDate ? new Date(updateAvailable.releaseDate).toLocaleDateString() : 'Fecha desconocida'}
+                                    </p>
+                                </div>
+                                <button
+                                    onClick={handleDownloadUpdate}
+                                    className="px-4 py-2 bg-white text-indigo-600 rounded-lg font-bold hover:bg-indigo-50 transition-colors flex items-center gap-2"
+                                >
+                                    <Download className="w-4 h-4" />
+                                    Descargar
+                                </button>
+                            </div>
+                        </div>
+                    ) : (
+                        <p className="text-indigo-100 text-sm">
+                            {checking ? 'Verificando...' : 'Estás usando la última versión estable'}
+                        </p>
+                    )}
+                </div>
+            </div>
+
+            {/* Actions Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Manual Check */}
+                <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-300 dark:border-gray-700 shadow-md hover:shadow-lg transition-all">
+                    <div className="flex items-start justify-between mb-4">
+                        <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center text-blue-600 dark:text-blue-400">
+                            <RefreshCw className="w-6 h-6" />
+                        </div>
+                    </div>
+
+                    <h3 className="font-bold text-gray-900 dark:text-white mb-2">Verificar Ahora</h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                        Comprueba manualmente si hay nuevas versiones disponibles.
+                    </p>
+
+                    <button
+                        onClick={handleCheckUpdates}
+                        disabled={checking || !window.electronAPI?.updater}
+                        className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 dark:disabled:bg-gray-700 text-white rounded-lg font-bold transition-all flex items-center justify-center gap-2"
+                    >
+                        {checking ? (
+                            <>
+                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                Verificando...
+                            </>
+                        ) : (
+                            <>
+                                <RefreshCw className="w-4 h-4" />
+                                Buscar Actualizaciones
+                            </>
+                        )}
+                    </button>
+                </div>
+
+                {/* Auto Updates */}
+                <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-300 dark:border-gray-700 shadow-md">
+                    <div className="flex items-start justify-between mb-4">
+                        <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-xl flex items-center justify-center text-green-600 dark:text-green-400">
+                            <Shield className="w-6 h-6" />
+                        </div>
+                        <Switch checked={autoCheckEnabled} onChange={handleToggleAutoCheck} />
+                    </div>
+
+                    <h3 className="font-bold text-gray-900 dark:text-white mb-2">Auto-actualizaciones</h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                        {autoCheckEnabled
+                            ? 'CeroCloud verifica nuevas versiones cada 6 horas automáticamente.'
+                            : 'Las verificaciones automáticas están desactivadas. Tendrás que buscar actualizaciones manualmente.'}
+                    </p>
+                </div>
+            </div>
+
+            {/* Info Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-gray-50 dark:bg-gray-900/30 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+                    <div className="flex items-center gap-3 mb-2">
+                        <Check className="w-5 h-5 text-green-500" />
+                        <h4 className="font-bold text-gray-900 dark:text-white text-sm">Seguro</h4>
+                    </div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                        Verificación de checksums y firma digital
+                    </p>
+                </div>
+
+                <div className="bg-gray-50 dark:bg-gray-900/30 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+                    <div className="flex items-center gap-3 mb-2">
+                        <Download className="w-5 h-5 text-blue-500" />
+                        <h4 className="font-bold text-gray-900 dark:text-white text-sm">Descarga Silenciosa</h4>
+                    </div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                        Sin interrumpir tu trabajo
+                    </p>
+                </div>
+
+                <div className="bg-gray-50 dark:bg-gray-900/30 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+                    <div className="flex items-center gap-3 mb-2">
+                        <Github className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+                        <h4 className="font-bold text-gray-900 dark:text-white text-sm">GitHub Releases</h4>
+                    </div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                        Fuente oficial y confiable
+                    </p>
+                </div>
+            </div>
+
+            {/* Notice */}
+            {!window.electronAPI?.updater && (
+                <div className="bg-yellow-50 dark:bg-yellow-900/10 border border-yellow-200 dark:border-yellow-800 rounded-xl p-4">
+                    <div className="flex items-start gap-3">
+                        <AlertTriangle className="w-5 h-5 text-yellow-600 dark:text-yellow-500 flex-shrink-0 mt-0.5" />
+                        <div>
+                            <h4 className="font-bold text-yellow-900 dark:text-yellow-200 text-sm mb-1">
+                                Modo Desarrollo
+                            </h4>
+                            <p className="text-xs text-yellow-700 dark:text-yellow-300">
+                                El auto-updater solo funciona en versiones empaquetadas (builds). En modo desarrollo, esta funcionalidad está deshabilitada.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Changelog Link */}
+            <div className="text-center">
+                <a
+                    href="https://cerocloud.github.io/CeroCloud-website/releases"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-semibold text-sm transition-colors"
+                >
+                    <FileText className="w-4 h-4" />
+                    Ver historial de versiones completo
+                </a>
+            </div>
+        </div>
     )
 }

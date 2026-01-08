@@ -74,21 +74,23 @@ export const backupService = {
                     const backup = JSON.parse(content)
 
                     // Validate backup structure
+                    // Validate backup structure
                     if (!backup.data || !backup.data.products) {
                         resolve({ success: false, message: 'Archivo de backup inválido o estructura desconocida' })
                         return
                     }
 
-                    // Note: In a real implementation, we would need IPC handlers
-                    // to clear and restore the entire database
-                    // For now, we just validate the file
+                    // Execute Restore via IPC
+                    const result = await window.electronAPI.database.restore(backup)
 
-                    // TODO: Implement actual restore via IPC call
-                    // await window.electronAPI.restoreDatabase(backup.data)
+                    if (!result.success) {
+                        resolve({ success: false, message: result.error || 'Error desconocido al restaurar la base de datos' })
+                        return
+                    }
 
                     resolve({
                         success: true,
-                        message: `Backup válido. Contiene ${backup.data.products.length} productos, ${backup.data.sales?.length || 0} ventas, ${backup.data.suppliers?.length || 0} proveedores`
+                        message: `Restauración exitosa. Se han recuperado ${backup.data.products.length} productos, ${backup.data.sales?.length || 0} ventas.`
                     })
                 } catch (error) {
                     console.error(error)

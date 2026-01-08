@@ -9,7 +9,8 @@ import {
     DollarSign,
     Calendar,
     AlertCircle,
-    Activity
+    Activity,
+    X
 } from 'lucide-react'
 import {
     AreaChart,
@@ -35,6 +36,7 @@ import { es } from 'date-fns/locale'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 
 export function Reports() {
     const [products, setProducts] = useState<Product[]>([])
@@ -42,6 +44,9 @@ export function Reports() {
     const [loading, setLoading] = useState(true)
     const [activeTab, setActiveTab] = useState<'sales' | 'inventory' | 'export' | 'transactions'>('sales')
     const [settings] = useState(companyService.getSettings())
+
+    // UI States
+    const [saleToCancel, setSaleToCancel] = useState<Sale | null>(null)
 
     useEffect(() => {
         loadData()
@@ -112,6 +117,20 @@ export function Reports() {
     })
 
     // --- HANDLERS ---
+
+    const handleCancelSale = async () => {
+        if (!saleToCancel) return
+
+        try {
+            await window.electronAPI.sales.cancel(saleToCancel.id!)
+            toast.success('Venta cancelada', { description: 'El stock ha sido restaurado correctamente.' })
+            setSaleToCancel(null)
+            loadData() // Refresh data
+        } catch (error) {
+            console.error(error)
+            toast.error('Error al cancelar venta')
+        }
+    }
 
     const productRevenue = new Map<number, { product: Product; revenue: number; quantity: number }>()
     sales.forEach(sale => {
@@ -531,17 +550,33 @@ export function Reports() {
                                                         {sale.items.length} productos
                                                     </span>
                                                 </td>
-                                                <td className="px-6 py-4 font-bold text-gray-900 dark:text-white">
-                                                    {settings.currencySymbol}{sale.total.toFixed(2)}
+                                                <td className="px-6 py-4">
+                                                    <div className="font-bold text-gray-900 dark:text-white">
+                                                        {settings.currencySymbol}{sale.total.toFixed(2)}
+                                                    </div>
+                                                    {sale.status === 'cancelled' && (
+                                                        <div className="text-xs text-red-500 font-medium">Cancelada</div>
+                                                    )}
                                                 </td>
                                                 <td className="px-6 py-4 text-right">
-                                                    <button
-                                                        onClick={() => pdfGenerator.generateInvoice(sale, settings)}
-                                                        className="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 font-medium text-sm flex items-center justify-end gap-1 ml-auto"
-                                                    >
-                                                        <Download className="w-4 h-4" />
-                                                        Ticket
-                                                    </button>
+                                                    <div className="flex items-center justify-end gap-2">
+                                                        <button
+                                                            onClick={() => pdfGenerator.generateInvoice(sale, settings)}
+                                                            className="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 font-medium text-sm flex items-center gap-1"
+                                                        >
+                                                            <Download className="w-4 h-4" />
+                                                            <span className="hidden sm:inline">Ticket</span>
+                                                        </button>
+                                                        {sale.status !== 'cancelled' && (
+                                                            <button
+                                                                onClick={() => setSaleToCancel(sale)}
+                                                                className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 font-medium text-sm flex items-center gap-1"
+                                                            >
+                                                                <X className="w-4 h-4" />
+                                                                <span className="hidden sm:inline">Cancelar</span>
+                                                            </button>
+                                                        )}
+                                                    </div>
                                                 </td>
                                             </tr>
                                         ))}
@@ -552,6 +587,17 @@ export function Reports() {
                     )}
                 </motion.div>
             </AnimatePresence>
+
+            <ConfirmDialog
+                isOpen={!!saleToCancel}
+                onCancel={() => setSaleToCancel(null)}
+                onConfirm={handleCancelSale}
+                title={`Cancelar Venta #${saleToCancel?.id}`}
+                description="¿Estás seguro de que deseas cancelar esta venta? Esta acción restaurará el stock de los productos vendidos y marcará la transacción como cancelada. Esta acción no se puede deshacer."
+                confirmText="Sí, cancelar venta"
+                cancelText="No, mantener"
+                variant="danger"
+            />
         </div>
     )
 }
@@ -759,6 +805,8 @@ function ExportSection({ sales, products, settings }: { sales: Sale[]; products:
                     }
                 />
             </div>
+
+
         </div>
     )
 }

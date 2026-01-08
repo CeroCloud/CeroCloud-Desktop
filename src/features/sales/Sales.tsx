@@ -13,7 +13,8 @@ import {
     Check,
     User,
     Percent,
-    Ticket as TicketIcon
+    Ticket as TicketIcon,
+    ArrowUpDown
 } from 'lucide-react'
 import { productService } from '@/services/productService'
 import { saleService } from '@/services/saleService'
@@ -313,21 +314,43 @@ export function Sales() {
                         )}
                     </div>
 
-                    <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                        {categories.map(cat => (
-                            <button
-                                key={cat}
-                                onClick={() => setSelectedCategory(cat)}
-                                className={cn(
-                                    "px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all",
-                                    selectedCategory === cat
-                                        ? "bg-primary text-white shadow-md shadow-primary/25"
-                                        : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
-                                )}
-                            >
-                                {cat === 'all' ? 'Todos' : cat}
-                            </button>
-                        ))}
+                    <div className="flex gap-2 w-full">
+                        {categories.length <= 5 ? (
+                            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide w-full">
+                                {categories.map(cat => (
+                                    <button
+                                        key={cat}
+                                        onClick={() => setSelectedCategory(cat)}
+                                        className={cn(
+                                            "px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all shrink-0",
+                                            selectedCategory === cat
+                                                ? "bg-primary text-white shadow-md shadow-primary/25"
+                                                : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                                        )}
+                                    >
+                                        {cat === 'all' ? 'Todos' : cat}
+                                    </button>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="relative w-full">
+                                <select
+                                    value={selectedCategory}
+                                    onChange={(e) => setSelectedCategory(e.target.value)}
+                                    className="w-full appearance-none bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 py-3 pl-4 pr-10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition-shadow cursor-pointer"
+                                    style={{ backgroundImage: 'none' }}
+                                >
+                                    {categories.map(cat => (
+                                        <option key={cat} value={cat}>
+                                            {cat === 'all' ? 'Todas las Categorías' : cat}
+                                        </option>
+                                    ))}
+                                </select>
+                                <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-500">
+                                    <ArrowUpDown className="w-4 h-4" />
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
 

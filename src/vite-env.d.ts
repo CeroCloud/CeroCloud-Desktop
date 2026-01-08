@@ -44,6 +44,10 @@ interface ElectronAPI {
         update: (id: number, supplier: any) => Promise<any>
         delete: (id: number) => Promise<{ success: boolean }>
     }
+    database: {
+        clearAll: () => Promise<{ success: boolean; error?: string }>
+        restore: (data: any) => Promise<{ success: boolean; error?: string }>
+    }
     backup: {
         create: (password?: string) => Promise<{ path: string; filename: string; encrypted: boolean }>
         createZip: (password?: string) => Promise<{ buffer: Uint8Array; filename: string; encrypted: boolean }>
@@ -55,6 +59,15 @@ interface ElectronAPI {
     company: {
         get: () => Promise<any>
         update: (data: any) => Promise<void>
+    }
+    updater: {
+        checkForUpdates: () => Promise<{ success: boolean; data?: any; error?: string }>
+        downloadUpdate: () => Promise<{ success: boolean; error?: string }>
+        quitAndInstall: () => Promise<void>
+        getCurrentVersion: () => Promise<string>
+        setAutoCheck: (enabled: boolean, intervalHours?: number) => Promise<{ success: boolean }>
+        onStatusUpdate: (callback: (status: any) => void) => void
+        removeStatusListener: () => void
     }
 }
 

@@ -8,7 +8,8 @@ import {
     Settings,
     ChevronLeft,
     ChevronRight,
-    Info
+    Info,
+    Truck
 } from 'lucide-react'
 import { useUIStore } from '@/stores/uiStore'
 import { motion } from 'framer-motion'
@@ -44,6 +45,7 @@ export function Sidebar() {
         { name: 'Dashboard', href: '/', icon: LayoutDashboard, shortcut: 'D' },
         { name: 'Inventario', href: '/inventory', icon: Package, shortcut: 'I' },
         { name: 'Ventas', href: '/sales', icon: ShoppingCart, shortcut: 'V' },
+        { name: 'Proveedores', href: '/suppliers', icon: Truck, shortcut: 'P' },
         { name: 'Reportes', href: '/reports', icon: FileText, shortcut: 'R' },
     ]
 

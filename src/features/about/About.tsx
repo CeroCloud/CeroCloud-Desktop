@@ -126,7 +126,7 @@ export function About() {
                                 </ul>
                                 <div className="mt-6 p-4 bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-900/50 rounded-xl">
                                     <p className="text-xs text-orange-700 dark:text-orange-400">
-                                        <strong>📧 ¿Dudas sobre licenciamiento?</strong> Contacta a <a href="mailto:daanieel123@outlook.com" className="underline">daanieel123@outlook.com</a>
+                                        <strong>📧 ¿Dudas sobre licenciamiento?</strong> Contacta a <a href="mailto:proyectogit22@gmail.com" className="underline">proyectogit22@gmail.com</a>
                                     </p>
                                 </div>
                             </div>
@@ -349,7 +349,7 @@ export function About() {
                                 <SocialButton icon={Github} href="https://github.com/CeroCloud/CeroCloud-Desktop" label="GitHub" />
                                 <SocialButton icon={Facebook} onClick={() => toast.info('Integración Próximamente')} label="Facebook" />
                                 <SocialButton icon={Twitter} onClick={() => toast.info('Integración Próximamente')} label="Twitter" />
-                                <SocialButton icon={Globe} onClick={() => toast.info('Integración Próximamente')} label="Website" />
+                                <SocialButton icon={Globe} href="https://cerocloud.github.io/CeroCloud-website/" label="Website" />
                             </div>
                         </motion.div>
                     </div>

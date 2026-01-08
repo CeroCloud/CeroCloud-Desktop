@@ -193,22 +193,43 @@ export function Inventory() {
 
                 {/* Filters & Toggles */}
                 <div className="flex items-center gap-4 w-full lg:w-auto overflow-x-auto pb-1 lg:pb-0">
-                    {/* Category Chips */}
-                    <div className="flex items-center gap-2">
-                        {categories.slice(0, 5).map(cat => (
-                            <button
-                                key={cat}
-                                onClick={() => setSelectedCategory(cat)}
-                                className={cn(
-                                    "px-3 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap",
-                                    selectedCategory === cat
-                                        ? "bg-primary/10 text-primary border border-primary/20"
-                                        : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600"
-                                )}
-                            >
-                                {cat === 'all' ? 'Todos' : cat}
-                            </button>
-                        ))}
+                    {/* Category Selector - Adaptive */}
+                    <div className="flex items-center gap-2 flex-1 lg:flex-none">
+                        {categories.length <= 5 ? (
+                            <div className="flex items-center gap-2 overflow-x-auto max-w-[200px] sm:max-w-none scrollbar-hide">
+                                {categories.map(cat => (
+                                    <button
+                                        key={cat}
+                                        onClick={() => setSelectedCategory(cat)}
+                                        className={cn(
+                                            "px-3 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap shrink-0",
+                                            selectedCategory === cat
+                                                ? "bg-primary/10 text-primary border border-primary/20"
+                                                : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600"
+                                        )}
+                                    >
+                                        {cat === 'all' ? 'Todos' : cat}
+                                    </button>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="relative w-full lg:w-48">
+                                <select
+                                    value={selectedCategory}
+                                    onChange={(e) => setSelectedCategory(e.target.value)}
+                                    className="w-full appearance-none bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 py-2 pl-4 pr-10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition-shadow cursor-pointer"
+                                >
+                                    {categories.map(cat => (
+                                        <option key={cat} value={cat}>
+                                            {cat === 'all' ? 'Todas las Categorías' : cat}
+                                        </option>
+                                    ))}
+                                </select>
+                                <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-gray-500">
+                                    <ArrowUpDown className="w-4 h-4" />
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     <div className="h-6 w-px bg-gray-200 dark:bg-gray-700 mx-2 hidden lg:block" />

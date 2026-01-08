@@ -4,8 +4,10 @@ import fs from 'fs'
 import { pathToFileURL } from 'url'
 import { initializeDatabase, closeDatabase } from './database'
 import { registerIpcHandlers } from './ipc'
+import { AutoUpdateService } from './autoUpdater'
 
 let mainWindow: BrowserWindow | null = null
+let autoUpdateService: AutoUpdateService | null = null
 
 
 function createWindow() {
@@ -74,6 +76,15 @@ app.whenReady().then(() => {
 
     createWindow()
 
+    // Inicializar auto-updater (handlers siempre disponibles, pero solo verifica en producción)
+    if (mainWindow) {
+        autoUpdateService = new AutoUpdateService(mainWindow)
+        // Solo activar verificación automática en producción
+        if (app.isPackaged) {
+            autoUpdateService.startAutoCheck(6)
+        }
+    }
+
     app.on('activate', () => {
         // On macOS, re-create window when dock icon is clicked
         if (BrowserWindow.getAllWindows().length === 0) {
@@ -111,6 +122,12 @@ function rescueOldImages() {
 }
 
 app.on('window-all-closed', () => {
+    // Cleanup auto-updater
+    if (autoUpdateService) {
+        autoUpdateService.destroy()
+        autoUpdateService = null
+    }
+
     // Close database before quitting
     closeDatabase()
 

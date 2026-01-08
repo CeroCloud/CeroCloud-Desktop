@@ -3,6 +3,7 @@ import { Outlet, useNavigate } from 'react-router-dom'
 import { Sidebar } from './Sidebar'
 import { Header } from './Header'
 import { motion } from 'framer-motion'
+import { UpdateNotifier } from '@/components/update/UpdateNotifier'
 
 export function MainLayout() {
     // const { sidebarCollapsed } = useUIStore() // Not needed here as Sidebar handles its own width
@@ -80,6 +81,9 @@ export function MainLayout() {
                     </motion.div>
                 </main>
             </div>
+
+            {/* Update Notifier - Global */}
+            <UpdateNotifier />
         </div>
     )
 }

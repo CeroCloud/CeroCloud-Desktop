@@ -48,6 +48,23 @@ contextBridge.exposeInMainWorld('electronAPI', {
     // Database
     database: {
         clearAll: () => ipcRenderer.invoke('database:clearAll'),
+        restore: (data: any) => ipcRenderer.invoke('database:restore', data),
+    },
+
+    // Auto Updater
+    updater: {
+        checkForUpdates: () => ipcRenderer.invoke('updater:check-for-updates'),
+        downloadUpdate: () => ipcRenderer.invoke('updater:download-update'),
+        quitAndInstall: () => ipcRenderer.invoke('updater:quit-and-install'),
+        getCurrentVersion: () => ipcRenderer.invoke('updater:get-current-version'),
+        setAutoCheck: (enabled: boolean, intervalHours?: number) =>
+            ipcRenderer.invoke('updater:set-auto-check', enabled, intervalHours),
+        onStatusUpdate: (callback: (status: any) => void) => {
+            ipcRenderer.on('updater-status', (_event, status) => callback(status))
+        },
+        removeStatusListener: () => {
+            ipcRenderer.removeAllListeners('updater-status')
+        },
     },
 })
 
