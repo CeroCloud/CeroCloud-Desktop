@@ -1,0 +1,40 @@
+{
+    "branches": [
+        "main",
+        {
+            "name": "develop",
+            "prerelease": "beta",
+            "channel": "beta"
+        }
+    ],
+    "plugins": [
+        "@semantic-release/commit-analyzer",
+        "@semantic-release/release-notes-generator",
+        "@semantic-release/npm",
+        [
+            "@semantic-release/exec",
+            {
+                "prepareCmd": "npm run type-check && npx vite build && npx electron-builder --win --linux --config.asar=true"
+            }
+        ],
+        [
+            "@semantic-release/github",
+            {
+                "assets": [
+                    {
+                        "path": "release/*.exe",
+                        "label": "Windows Installer"
+                    },
+                    {
+                        "path": "release/*.AppImage",
+                        "label": "Linux AppImage"
+                    },
+                    {
+                        "path": "release/*.deb",
+                        "label": "Linux Deb"
+                    }
+                ]
+            }
+        ]
+    ]
+}

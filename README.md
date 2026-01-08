@@ -285,7 +285,7 @@ Este proyecto está bajo la **MIT License con Commons Clause**.
 
 Ver [LICENSE](LICENSE) para el texto legal completo.
 
-**¿Eres consultor/técnico?** Contacta a [daanieel123@outlook.com](mailto:daanieel123@outlook.com)
+**¿Eres consultor/técnico?** Contacta a [proyectogit22@gmail.comm](mailto:proyectogit22@gmail.com)
 
 </div>
 
