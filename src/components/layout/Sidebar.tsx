@@ -18,7 +18,7 @@ import { cn } from '@/lib/utils'
 import { companyService } from '@/services/companyService'
 
 export function Sidebar() {
-    const { sidebarCollapsed, toggleSidebar } = useUIStore()
+    const { sidebarCollapsed, toggleSidebar, setSidebarCollapsed } = useUIStore()
     const [companyInfo, setCompanyInfo] = useState({ name: 'CeroCloud', logo: '' })
 
     const loadCompanyInfo = () => {
@@ -35,6 +35,11 @@ export function Sidebar() {
 
         const handleSettingsChange = () => {
             loadCompanyInfo()
+        }
+
+        // Auto-collapse on mount if screen is < 1024px to save space
+        if (window.innerWidth < 1024 && !sidebarCollapsed) {
+            setSidebarCollapsed(true)
         }
 
         window.addEventListener('company-settings-changed', handleSettingsChange)

@@ -292,7 +292,7 @@ export function Inventory() {
                 ) : (
                     <>
                         {inventoryViewMode === 'grid' ? (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
                                 {filteredAndSortedProducts.map((product) => (
                                     <ProductCard
                                         key={product.id}
@@ -309,16 +309,16 @@ export function Inventory() {
                                     <table className="w-full">
                                         <thead className="bg-gray-50/50 dark:bg-gray-900/50 border-b border-gray-100 dark:border-gray-700">
                                             <tr>
-                                                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Producto</th>
                                                 <th
                                                     className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer hover:text-primary transition-colors"
                                                     onClick={() => toggleSort('name')}
                                                 >
                                                     <div className="flex items-center gap-1">
-                                                        Detalles
+                                                        Producto
                                                         <ArrowUpDown className="w-3 h-3" />
                                                     </div>
                                                 </th>
+                                                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider hidden md:table-cell">Categoría</th>
                                                 <th
                                                     className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer hover:text-primary transition-colors"
                                                     onClick={() => toggleSort('price')}
@@ -498,7 +498,7 @@ function ProductRow({ product, settings, onEdit, onDelete }: { product: Product;
                     </div>
                 </div>
             </td>
-            <td className="px-6 py-4">
+            <td className="px-6 py-4 hidden md:table-cell">
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
                     {product.category || 'Sin Categoría'}
                 </span>
