@@ -26,6 +26,18 @@ export interface Supplier {
     created_at?: string
 }
 
+export interface Client {
+    id?: number
+    name: string
+    tax_id?: string
+    address?: string
+    phone?: string
+    email?: string
+    notes?: string
+    created_at?: string
+    updated_at?: string
+}
+
 export interface Category {
     id?: number
     name: string

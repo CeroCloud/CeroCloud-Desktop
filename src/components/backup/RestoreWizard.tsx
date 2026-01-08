@@ -2,7 +2,7 @@
 // @ts-nocheck
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from 'react'
-import { X, Upload, CheckCircle, AlertTriangle, FileArchive, Loader2, Lock, Eye, EyeOff, ArrowLeft, Database, Calendar, Package, ShoppingCart } from 'lucide-react'
+import { X, Upload, CheckCircle, AlertTriangle, FileArchive, Loader2, Lock, Eye, EyeOff, ArrowLeft, Database, Calendar, Package, ShoppingCart, Users, Truck } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { toast } from 'sonner'
 import { zipBackupService } from '@/services/zipBackupService'
@@ -84,19 +84,15 @@ export function RestoreWizard({ onClose, onRestoreComplete }: RestoreWizardProps
 
             const { data, settings } = result
 
-            // Clear current database completely
-            const clearResult = await window.electronAPI.database.clearAll()
-            if (!clearResult?.success) {
-                throw new Error(clearResult?.error || 'Error al limpiar la base de datos')
-            }
+            // Usar restauración nativa del backend (más rápido y seguro)
+            const restoreResult = await window.electronAPI.database.restore({
+                version: '1.0',
+                data: data
+            })
 
-            // Insert restored data
-            for (const product of data.products) await window.electronAPI.products.create(product)
-            for (const category of data.categories || []) {
-                if (category.name) await window.electronAPI.categories.create(category.name, category.description)
+            if (!restoreResult.success) {
+                throw new Error(restoreResult.error || 'Error al restaurar la base de datos')
             }
-            for (const sale of data.sales || []) await window.electronAPI.sales.create(sale)
-            for (const supplier of data.suppliers || []) await window.electronAPI.suppliers.create(supplier)
 
             // Restore settings
             if (settings) {
@@ -365,6 +361,28 @@ export function RestoreWizard({ onClose, onRestoreComplete }: RestoreWizardProps
                                                             </p>
                                                         </div>
                                                     </div>
+                                                    <div className="flex items-center gap-3 p-3 bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700">
+                                                        <div className="p-2 bg-pink-50 dark:bg-pink-900/20 rounded-lg text-pink-600">
+                                                            <Users className="w-4 h-4" />
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-xs text-gray-500">Clientes</p>
+                                                            <p className="text-sm font-bold text-gray-900 dark:text-white">
+                                                                {backupInfo.stats.clientsCount}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center gap-3 p-3 bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700">
+                                                        <div className="p-2 bg-orange-50 dark:bg-orange-900/20 rounded-lg text-orange-600">
+                                                            <Truck className="w-4 h-4" />
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-xs text-gray-500">Proveedores</p>
+                                                            <p className="text-sm font-bold text-gray-900 dark:text-white">
+                                                                {backupInfo.stats.suppliersCount}
+                                                            </p>
+                                                        </div>
+                                                    </div >
                                                 </>
                                             )}
                                         </div>

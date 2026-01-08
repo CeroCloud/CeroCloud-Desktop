@@ -2,7 +2,7 @@ import Database from 'better-sqlite3'
 import path from 'path'
 import { app } from 'electron'
 import fs from 'fs'
-import { Product, Category, Sale, Supplier, SaleItem } from '../../src/types/database'
+import { Product, Category, Sale, Supplier, SaleItem, Client } from '../../src/types/database'
 
 // Configuración de la Base de Datos
 const dbPath = path.join(app.getPath('userData'), 'cerocloud.db')
@@ -57,6 +57,20 @@ function initSchema() {
         created_at TEXT
     )`)
 
+  // Tabla: Clientes
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS clients (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        tax_id TEXT,
+        address TEXT,
+        phone TEXT,
+        email TEXT,
+        notes TEXT,
+        created_at TEXT,
+        updated_at TEXT
+    )`)
+
   // Tabla: Ventas
   db.exec(`
     CREATE TABLE IF NOT EXISTS sales (
@@ -95,6 +109,8 @@ function initSchema() {
     CREATE INDEX IF NOT EXISTS idx_sales_created_at ON sales(created_at);
     CREATE INDEX IF NOT EXISTS idx_sale_items_sale_id ON sale_items(sale_id);
     CREATE INDEX IF NOT EXISTS idx_sale_items_product_id ON sale_items(product_id);
+    CREATE INDEX IF NOT EXISTS idx_clients_name ON clients(name);
+    CREATE INDEX IF NOT EXISTS idx_clients_tax_id ON clients(tax_id);
   `)
 
   console.log('✅ Esquema SQLite inicializado con optimizaciones de rendimiento.')
@@ -353,6 +369,66 @@ export const categoryQueries = {
   }
 }
 
+export const clientQueries = {
+  getAll: (): Client[] => {
+    return db.prepare('SELECT * FROM clients ORDER BY name ASC').all() as Client[]
+  },
+
+  getById: (id: number): Client | undefined => {
+    return db.prepare('SELECT * FROM clients WHERE id = ?').get(id) as Client | undefined
+  },
+
+  search: (term: string): Client[] => {
+    const pattern = `%${term}%`
+    return db.prepare(`
+            SELECT * FROM clients 
+            WHERE name LIKE ? OR tax_id LIKE ? OR phone LIKE ?
+        `).all(pattern, pattern, pattern) as Client[]
+  },
+
+  create: (client: Omit<Client, 'id'> & { id?: number }): Client => {
+    const stmt = db.prepare(`
+            INSERT INTO clients(id, name, tax_id, address, phone, email, notes, created_at, updated_at)
+            VALUES(@id, @name, @tax_id, @address, @phone, @email, @notes, @created_at, @updated_at)
+        `)
+
+    const info = stmt.run({
+      ...client,
+      id: client.id || null,
+      tax_id: client.tax_id || null,
+      address: client.address || null,
+      phone: client.phone || null,
+      email: client.email || null,
+      notes: client.notes || '',
+      created_at: client.created_at || new Date().toISOString(),
+      updated_at: client.updated_at || new Date().toISOString()
+    })
+
+    return { ...client, id: Number(info.lastInsertRowid) }
+  },
+
+  update: (id: number, clientData: Partial<Client>): Client | null => {
+    const fields = Object.keys(clientData).filter(key => key !== 'id' && key !== 'created_at')
+    if (fields.length === 0) return clientQueries.getById(id) || null
+
+    const setClause = fields.map(field => `${field} = @${field}`).join(', ')
+    const stmt = db.prepare(`UPDATE clients SET ${setClause}, updated_at = @updated_at WHERE id = @id`)
+
+    stmt.run({
+      ...clientData,
+      id,
+      updated_at: new Date().toISOString()
+    })
+
+    return clientQueries.getById(id) || null
+  },
+
+  delete: (id: number): boolean => {
+    const info = db.prepare('DELETE FROM clients WHERE id = ?').run(id)
+    return info.changes > 0
+  }
+}
+
 export const supplierQueries = {
   getAll: (): Supplier[] => {
     return db.prepare('SELECT * FROM suppliers ORDER BY name ASC').all() as Supplier[]
@@ -499,6 +575,15 @@ export const saleQueries = {
       ...sale,
       items: getItems.all(sale.id) as SaleItem[]
     }))
+  },
+
+  getByCustomerName: (name: string): Sale[] => {
+    const sales = db.prepare('SELECT * FROM sales WHERE customer_name = ? ORDER BY created_at DESC').all(name) as Sale[]
+    const getItems = db.prepare('SELECT * FROM sale_items WHERE sale_id = ?')
+    return sales.map(sale => ({
+      ...sale,
+      items: getItems.all(sale.id) as SaleItem[]
+    }))
   }
 }
 
@@ -537,6 +622,7 @@ export function restoreDatabase(data: any) {
     db.prepare('DELETE FROM products').run()
     db.prepare('DELETE FROM categories').run()
     db.prepare('DELETE FROM suppliers').run()
+    db.prepare('DELETE FROM clients').run()
     db.prepare('DELETE FROM sqlite_sequence').run()
 
     // Prepared Statements
@@ -618,6 +704,22 @@ export function restoreDatabase(data: any) {
         }
       }
     }
+    // 6. Restaurar Clientes
+    if (data.clients) {
+      const insertClient = db.prepare(`
+        INSERT INTO clients(id, name, tax_id, address, phone, email, notes, created_at, updated_at)
+        VALUES(@id, @name, @tax_id, @address, @phone, @email, @notes, @created_at, @updated_at)
+      `)
+
+      for (const c of data.clients) {
+        insertClient.run({
+          id: c.id, name: c.name, tax_id: c.tax_id || null, address: c.address || null,
+          phone: c.phone || null, email: c.email || null, notes: c.notes || '',
+          created_at: c.created_at || new Date().toISOString(),
+          updated_at: c.updated_at || new Date().toISOString()
+        })
+      }
+    }
   })
 
   restoreTx()
@@ -631,6 +733,7 @@ export function clearAll() {
     db.prepare('DELETE FROM products').run()
     db.prepare('DELETE FROM categories').run()
     db.prepare('DELETE FROM suppliers').run()
+    db.prepare('DELETE FROM clients').run()
     db.prepare('DELETE FROM sqlite_sequence').run()
   })
   clearTx()

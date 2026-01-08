@@ -1,7 +1,7 @@
 import { ipcMain, app } from 'electron'
 import path from 'path'
 import fs from 'fs'
-import { productQueries, categoryQueries, saleQueries, supplierQueries, cancelSale, clearAll, restoreDatabase } from './database'
+import { productQueries, categoryQueries, saleQueries, supplierQueries, clientQueries, cancelSale, clearAll, restoreDatabase } from './database'
 import { logger } from './logger'
 
 export function registerIpcHandlers() {
@@ -185,6 +185,10 @@ export function registerIpcHandlers() {
         return cancelSale(id)
     })
 
+    ipcMain.handle('sales:getByCustomerName', (_event, name: string) => {
+        return saleQueries.getByCustomerName(name)
+    })
+
     // Suppliers
     ipcMain.handle('suppliers:getAll', () => {
         return supplierQueries.getAll()
@@ -210,6 +214,38 @@ export function registerIpcHandlers() {
 
     ipcMain.handle('suppliers:delete', (_event, id: number) => {
         supplierQueries.delete(id)
+        return { success: true }
+    })
+
+    // Clients
+    ipcMain.handle('clients:getAll', () => {
+        return clientQueries.getAll()
+    })
+
+    ipcMain.handle('clients:getById', (_event, id: number) => {
+        return clientQueries.getById(id)
+    })
+
+    ipcMain.handle('clients:search', (_event, term: string) => {
+        return clientQueries.search(term)
+    })
+
+    ipcMain.handle('clients:create', (_event, client) => {
+        try {
+            return clientQueries.create(client)
+        } catch (error) {
+            logger.error('Clients Create', error)
+            throw error
+        }
+    })
+
+    ipcMain.handle('clients:update', (_event, id: number, client) => {
+        const result = clientQueries.update(id, client)
+        return result || { id, ...client }
+    })
+
+    ipcMain.handle('clients:delete', (_event, id: number) => {
+        clientQueries.delete(id)
         return { success: true }
     })
 

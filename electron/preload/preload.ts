@@ -34,6 +34,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
         getTotalSales: () => ipcRenderer.invoke('sales:getTotalSales'),
         getSalesToday: () => ipcRenderer.invoke('sales:getSalesToday'),
         cancel: (id: number) => ipcRenderer.invoke('sales:cancel', id),
+        getByCustomerName: (name: string) => ipcRenderer.invoke('sales:getByCustomerName', name),
     },
 
     // Suppliers
@@ -43,6 +44,16 @@ contextBridge.exposeInMainWorld('electronAPI', {
         create: (supplier: any) => ipcRenderer.invoke('suppliers:create', supplier),
         update: (id: number, supplier: any) => ipcRenderer.invoke('suppliers:update', id, supplier),
         delete: (id: number) => ipcRenderer.invoke('suppliers:delete', id),
+    },
+
+    // Clients
+    clients: {
+        getAll: () => ipcRenderer.invoke('clients:getAll'),
+        getById: (id: number) => ipcRenderer.invoke('clients:getById', id),
+        search: (term: string) => ipcRenderer.invoke('clients:search', term),
+        create: (client: any) => ipcRenderer.invoke('clients:create', client),
+        update: (id: number, client: any) => ipcRenderer.invoke('clients:update', id, client),
+        delete: (id: number) => ipcRenderer.invoke('clients:delete', id),
     },
 
     // Database

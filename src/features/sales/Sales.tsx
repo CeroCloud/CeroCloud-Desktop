@@ -26,6 +26,7 @@ import { toast } from 'sonner'
 import { cn, getImageSrc } from '@/lib/utils'
 import { useCartStore } from '@/stores/cartStore'
 import { useNotificationStore } from '@/stores/notificationStore'
+import { clientService, type Client } from '@/services/clientService'
 
 export function Sales() {
     // Data State
@@ -66,6 +67,51 @@ export function Sales() {
     const searchInputRef = useRef<HTMLInputElement>(null)
     const receivedAmountInputRef = useRef<HTMLInputElement>(null)
     const processSaleRef = useRef<() => void>(() => { })
+
+    // Client Autocomplete State
+    const [clientSearchResults, setClientSearchResults] = useState<Client[]>([])
+    const [showClientResults, setShowClientResults] = useState(false)
+    const clientSearchTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+    const clientContainerRef = useRef<HTMLDivElement>(null)
+
+    // Handle click outside client results
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (clientContainerRef.current && !clientContainerRef.current.contains(event.target as Node)) {
+                setShowClientResults(false)
+            }
+        }
+        document.addEventListener('mousedown', handleClickOutside)
+        return () => document.removeEventListener('mousedown', handleClickOutside)
+    }, [])
+
+    const handleClientSearch = (term: string) => {
+        setCustomerName(term)
+
+        if (clientSearchTimeoutRef.current) clearTimeout(clientSearchTimeoutRef.current)
+
+        if (term.length < 2) {
+            setClientSearchResults([])
+            setShowClientResults(false)
+            return
+        }
+
+        clientSearchTimeoutRef.current = setTimeout(async () => {
+            try {
+                const results = await clientService.search(term)
+                setClientSearchResults(results)
+                setShowClientResults(true)
+            } catch (err) {
+                console.error(err)
+            }
+        }, 300) // Debounce 300ms
+    }
+
+    const selectClient = (client: Client) => {
+        setCustomerName(client.name)
+        setShowClientResults(false)
+        setClientSearchResults([])
+    }
 
 
 
@@ -482,20 +528,50 @@ export function Sales() {
                         {/* Customer & Inputs Row */}
                         <div className="p-4 space-y-3">
                             <div className="flex gap-3">
-                                <div className="relative flex-1 group">
+                                <div className="relative flex-1 group" ref={clientContainerRef}>
                                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                         <User className="w-4 h-4 text-gray-400 group-focus-within:text-primary transition-colors" />
                                     </div>
                                     <input
                                         type="text"
                                         value={activeTab.customerName}
-                                        onChange={(e) => setCustomerName(e.target.value)}
+                                        onChange={(e) => handleClientSearch(e.target.value)}
+                                        onFocus={() => activeTab.customerName.length >= 2 && setShowClientResults(true)}
                                         placeholder="Cliente (Público General)"
                                         className={cn(
                                             "w-full pl-10 pr-3 py-2.5 text-sm rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 text-gray-900 dark:text-gray-100 focus:bg-white dark:focus:bg-gray-800 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all placeholder:text-gray-400",
                                             settings.requireCustomerName && !activeTab.customerName && "border-red-300 ring-2 ring-red-50"
                                         )}
+                                        autoComplete="off"
                                     />
+                                    {/* Resultados Autocompletado */}
+                                    <AnimatePresence>
+                                        {showClientResults && clientSearchResults.length > 0 && (
+                                            <motion.div
+                                                initial={{ opacity: 0, y: 5 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                exit={{ opacity: 0, y: 5 }}
+                                                className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 max-h-60 overflow-y-auto z-50 py-1"
+                                            >
+                                                {clientSearchResults.map((client) => (
+                                                    <button
+                                                        key={client.id}
+                                                        onClick={() => selectClient(client)}
+                                                        className="w-full text-left px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex flex-col border-b border-gray-50 dark:border-gray-700 last:border-0"
+                                                    >
+                                                        <span className="font-bold text-sm text-gray-800 dark:text-gray-200">{client.name}</span>
+                                                        <div className="flex gap-2 text-xs text-gray-500">
+                                                            {client.tax_id && <span>NIT: {client.tax_id}</span>}
+                                                            {client.phone && <span>• {client.phone}</span>}
+                                                        </div>
+                                                    </button>
+                                                ))}
+                                                <div className="bg-gray-50 dark:bg-gray-900/50 p-2 text-center text-xs text-gray-400">
+                                                    {clientSearchResults.length} coincidencias
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
                                 </div>
 
                                 {settings.enableDiscounts && (
