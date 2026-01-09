@@ -1,10 +1,12 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { X, Image as ImageIcon, Loader2, Save } from 'lucide-react'
 import { productService } from '@/services/productService'
-import { Product } from '@/types/database'
+import { supplierService } from '@/services/supplierService'
+import { Product, Supplier } from '@/types/database'
 import { motion, AnimatePresence } from 'framer-motion'
 import { toast } from 'sonner'
 import { cn, getImageSrc } from '@/lib/utils'
@@ -18,6 +20,12 @@ interface ProductFormProps {
 }
 
 export function ProductForm({ product, onClose }: ProductFormProps) {
+    const [suppliers, setSuppliers] = useState<Supplier[]>([])
+
+    useEffect(() => {
+        supplierService.getAll().then(setSuppliers).catch(console.error)
+    }, [])
+
     const {
         register,
         handleSubmit,
@@ -38,6 +46,7 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
             stock: 0,
             min_stock: 0,
             unit: 'unidad',
+            supplier_id: undefined,
         }
     })
 
@@ -57,6 +66,7 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
                 stock: product.stock,
                 min_stock: product.min_stock,
                 unit: product.unit as any,
+                supplier_id: product.supplier_id,
             })
         }
     }, [product, reset])
@@ -101,7 +111,7 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
         }
     }
 
-    return (
+    return createPortal(
         <AnimatePresence>
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
                 {/* Backdrop */}
@@ -110,7 +120,7 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     onClick={onClose}
-                    className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+                    className="absolute inset-0 bg-black/20 backdrop-blur-sm"
                 />
 
                 {/* Modal Window */}
@@ -240,6 +250,18 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
                                     />
                                 </div>
                                 <div className="col-span-2">
+                                    <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Proveedor</label>
+                                    <select
+                                        {...register('supplier_id')}
+                                        className="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none appearance-none cursor-pointer"
+                                    >
+                                        <option value="">Selecciona un proveedor (Opcional)</option>
+                                        {suppliers.map(s => (
+                                            <option key={s.id} value={s.id}>{s.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className="col-span-2">
                                     <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Unidad de Medida</label>
                                     <select
                                         {...register('unit')}
@@ -341,6 +363,7 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
                     </div>
                 </motion.div>
             </div>
-        </AnimatePresence>
+        </AnimatePresence>,
+        document.body
     )
 }

@@ -1,4 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion'
+import { createPortal } from 'react-dom'
 import { AlertTriangle } from 'lucide-react'
 
 interface ConfirmDialogProps {
@@ -45,7 +46,7 @@ export function ConfirmDialog({
 
     const style = colors[variant]
 
-    return (
+    return createPortal(
         <AnimatePresence>
             {isOpen && (
                 <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
@@ -54,7 +55,7 @@ export function ConfirmDialog({
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={onCancel}
-                        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+                        className="absolute inset-0 bg-black/20 backdrop-blur-sm"
                     />
 
                     <motion.div
@@ -93,6 +94,7 @@ export function ConfirmDialog({
                     </motion.div>
                 </div>
             )}
-        </AnimatePresence>
+        </AnimatePresence>,
+        document.body
     )
 }

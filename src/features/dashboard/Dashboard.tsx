@@ -135,10 +135,10 @@ export function Dashboard() {
     return (
         <div className="space-y-8 pb-8">
             {/* HERO SECTION - Redesigned Premium Dark Theme */}
-            <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 rounded-3xl shadow-2xl border border-slate-800/50 group">
+            <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 rounded-3xl shadow-2xl border border-slate-800/50 group transition-shadow duration-500 hover:shadow-indigo-500/10">
                 {/* Background Effects */}
-                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-indigo-500/20 rounded-full blur-[120px] mix-blend-screen opacity-50 pointer-events-none transform translate-x-1/2 -translate-y-1/2" />
-                <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-purple-500/10 rounded-full blur-[100px] mix-blend-screen opacity-30 pointer-events-none transform -translate-x-1/2 translate-y-1/2" />
+                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-indigo-500/20 rounded-full blur-[120px] mix-blend-screen opacity-50 pointer-events-none transform translate-x-1/2 -translate-y-1/2 group-hover:opacity-60 transition-opacity duration-700" />
+                <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-purple-500/10 rounded-full blur-[100px] mix-blend-screen opacity-30 pointer-events-none transform -translate-x-1/2 translate-y-1/2 group-hover:opacity-40 transition-opacity duration-700" />
 
                 <div className="relative z-10 p-6 md:p-8 flex justify-between items-center">
                     <motion.div
@@ -195,7 +195,7 @@ export function Dashboard() {
             </div>
 
             {/* KPI CARDS - Clean & Neutral */}
-            < div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" >
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                 <KPICard
                     title="Ingresos Totales"
                     value={`${settings.currencySymbol}${totalRevenue.toLocaleString('es-MX', { minimumFractionDigits: 2 })}`}
@@ -246,8 +246,8 @@ export function Dashboard() {
                             <Activity className="w-5 h-5" />
                         </div>
                     </div>
-                    <ResponsiveContainer width="100%" height={300}>
-                        {totalSales > 0 ? (
+                    {totalSales > 0 ? (
+                        <ResponsiveContainer width="100%" height={300}>
                             <AreaChart data={last7Days}>
                                 <defs>
                                     <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
@@ -284,65 +284,78 @@ export function Dashboard() {
                                     activeDot={{ r: 6, strokeWidth: 0 }}
                                 />
                             </AreaChart>
-                        ) : (
-                            <div className="flex flex-col items-center justify-center h-full text-gray-400">
-                                <motion.div
-                                    initial={{ scale: 0.8, opacity: 0 }}
-                                    animate={{ scale: 1, opacity: 1 }}
-                                    transition={{ duration: 0.5 }}
-                                    className="p-6 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700/50 dark:to-gray-800 rounded-full mb-4 shadow-inner"
-                                >
-                                    <Activity className="w-10 h-10 text-gray-400 dark:text-gray-500" />
-                                </motion.div>
-                                <h4 className="font-semibold text-gray-900 dark:text-gray-200 mb-1">Sin actividad reciente</h4>
-                                <p className="text-sm text-gray-500 dark:text-gray-400 text-center max-w-[250px]">
-                                    Tu gráfica de ingresos cobrará vida cuando registres tu primera venta.
-                                </p>
-                            </div>
-                        )}
-                    </ResponsiveContainer>
+                        </ResponsiveContainer>
+                    ) : (
+                        <div className="h-[300px] flex flex-col items-center justify-center text-gray-400 border-2 border-dashed border-gray-100 dark:border-gray-700/50 rounded-xl">
+                            <motion.div
+                                initial={{ scale: 0.8, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                transition={{ duration: 0.5 }}
+                                className="p-6 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700/50 dark:to-gray-800 rounded-full mb-4 shadow-inner"
+                            >
+                                <Activity className="w-10 h-10 text-gray-400 dark:text-gray-500" />
+                            </motion.div>
+                            <h4 className="font-semibold text-gray-900 dark:text-gray-200 mb-2 text-center px-4">Sin actividad reciente</h4>
+                            <p className="text-sm text-gray-500 dark:text-gray-400 text-center max-w-[280px] leading-relaxed px-4">
+                                Tu gráfica de ingresos cobrará vida cuando registres tu primera venta.
+                            </p>
+                        </div>
+                    )}
                 </div >
 
                 {/* Top Products & Payment Methods Grid */}
                 <div className="space-y-6">
                     {/* Top Products */}
-                    <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-300 dark:border-gray-700 shadow-md h-[420px] overflow-y-auto custom-scrollbar">
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">Top Productos</h3>
-                        <div className="space-y-7">
-                            {topProducts.map((product, index) => (
-                                <div key={index} className="relative group">
-                                    <div className="flex justify-between items-start mb-2">
-                                        <div className="flex items-center gap-3">
-                                            <span className="flex items-center justify-center w-6 h-6 rounded-full bg-gray-100 dark:bg-gray-700 text-xs font-bold text-gray-500">
-                                                {index + 1}
-                                            </span>
-                                            <span className="text-sm font-bold text-gray-800 dark:text-gray-100 truncate max-w-[140px] group-hover:text-primary transition-colors">
-                                                {product.name}
-                                            </span>
+                    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-300 dark:border-gray-700 shadow-md h-[420px] flex flex-col overflow-hidden">
+                        <div className="p-6 border-b border-gray-100 dark:border-gray-700/50 shrink-0">
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Top Productos</h3>
+                        </div>
+
+                        <div className="flex-1 overflow-y-auto custom-scrollbar p-6 relative">
+                            {topProducts.length > 0 ? (
+                                <div className="space-y-7">
+                                    {topProducts.map((product, index) => (
+                                        <div key={index} className="relative group">
+                                            <div className="flex justify-between items-start mb-2">
+                                                <div className="flex items-center gap-3">
+                                                    <span className="flex items-center justify-center w-6 h-6 rounded-full bg-gray-100 dark:bg-gray-700 text-xs font-bold text-gray-500">
+                                                        {index + 1}
+                                                    </span>
+                                                    <span className="text-sm font-bold text-gray-800 dark:text-gray-100 truncate max-w-[140px] group-hover:text-primary transition-colors">
+                                                        {product.name}
+                                                    </span>
+                                                </div>
+                                                <div className="text-right flex flex-col items-end">
+                                                    <span className="text-sm font-black text-gray-900 dark:text-white">
+                                                        {settings.currencySymbol}{product.ventas.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+                                                    </span>
+                                                    <span className="text-[10px] font-semibold text-gray-500 dark:text-gray-400 mt-0.5">
+                                                        {product.quantity} unidades vendidas
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div className="w-full h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                                                <div
+                                                    className="h-full rounded-full transition-all duration-500 ease-out bg-teal-500 group-hover:bg-teal-400"
+                                                    style={{
+                                                        width: `${(product.ventas / (topProducts[0]?.ventas || 1)) * 100}%`
+                                                    }}
+                                                />
+                                            </div>
                                         </div>
-                                        <div className="text-right flex flex-col items-end">
-                                            <span className="text-sm font-black text-gray-900 dark:text-white">
-                                                {settings.currencySymbol}{product.ventas.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
-                                            </span>
-                                            <span className="text-[10px] font-semibold text-gray-500 dark:text-gray-400 mt-0.5">
-                                                {product.quantity} unidades vendidas
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <div className="w-full h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
-                                        <div
-                                            className="h-full rounded-full transition-all duration-500 ease-out bg-teal-500 group-hover:bg-teal-400"
-                                            style={{
-                                                width: `${(product.ventas / (topProducts[0]?.ventas || 1)) * 100}%`
-                                            }}
-                                        />
-                                    </div>
+                                    ))}
                                 </div>
-                            ))}
-                            {topProducts.length === 0 && (
-                                <div className="flex flex-col items-center justify-center h-full text-gray-400">
-                                    <Package className="w-10 h-10 mb-3 opacity-30" />
-                                    <p className="text-sm font-medium">No hay ventas registradas</p>
+                            ) : (
+                                <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-400">
+                                    <motion.div
+                                        initial={{ scale: 0.8, opacity: 0 }}
+                                        animate={{ scale: 1, opacity: 1 }}
+                                        transition={{ duration: 0.5 }}
+                                        className="p-5 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700/50 dark:to-gray-800 rounded-full mb-4 shadow-inner"
+                                    >
+                                        <Package className="w-8 h-8 text-gray-400 dark:text-gray-500" />
+                                    </motion.div>
+                                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400">No hay ventas registradas</p>
                                 </div>
                             )}
                         </div>
@@ -411,9 +424,9 @@ function KPICard({ title, value, icon: Icon, trend, trendValue, color }: any) {
     }
 
     return (
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-300 dark:border-gray-700 shadow-md hover:shadow-lg transition-shadow">
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-300 dark:border-gray-700 shadow-md hover:shadow-xl hover:border-gray-400 dark:hover:border-gray-600 transition-all duration-300 hover:-translate-y-0.5 group">
             <div className="flex items-start justify-between mb-4">
-                <div className={cn("p-3 rounded-lg", colorStyles[color as keyof typeof colorStyles] || colorStyles.blue)}>
+                <div className={cn("p-3 rounded-lg transition-transform duration-300 group-hover:scale-110", colorStyles[color as keyof typeof colorStyles] || colorStyles.blue)}>
                     <Icon className="w-6 h-6" />
                 </div>
                 {trend !== "Neutral" && (

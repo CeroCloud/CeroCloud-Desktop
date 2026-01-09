@@ -2,7 +2,7 @@ import Database from 'better-sqlite3'
 import path from 'path'
 import { app } from 'electron'
 import fs from 'fs'
-import { Product, Category, Sale, Supplier, SaleItem } from '../../src/types/database'
+import { Product, Category, Sale, Supplier, SaleItem, Client } from '../../src/types/database'
 
 // Configuración de la Base de Datos
 const dbPath = path.join(app.getPath('userData'), 'cerocloud.db')
@@ -10,6 +10,8 @@ const db = new Database(dbPath)
 
 // Habilitar WAL (Write-Ahead Logging) para mejor rendimiento y seguridad
 db.pragma('journal_mode = WAL')
+// Habilitar claves foráneas
+db.pragma('foreign_keys = ON')
 
 // ==========================================
 // 1. Definición del Esquema (Schema)
@@ -57,6 +59,20 @@ function initSchema() {
         created_at TEXT
     )`)
 
+  // Tabla: Clientes
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS clients (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        tax_id TEXT,
+        address TEXT,
+        phone TEXT,
+        email TEXT,
+        notes TEXT,
+        created_at TEXT,
+        updated_at TEXT
+    )`)
+
   // Tabla: Ventas
   db.exec(`
     CREATE TABLE IF NOT EXISTS sales (
@@ -86,7 +102,22 @@ function initSchema() {
         FOREIGN KEY (sale_id) REFERENCES sales(id) ON DELETE CASCADE
     )`)
 
-  console.log('✅ Esquema SQLite inicializado o verificado.')
+
+
+
+  // Índices Estratégicos para Rendimiento
+  db.exec(`
+    CREATE INDEX IF NOT EXISTS idx_products_name ON products(name);
+    CREATE INDEX IF NOT EXISTS idx_products_category ON products(category);
+    CREATE INDEX IF NOT EXISTS idx_sales_created_at ON sales(created_at);
+    CREATE INDEX IF NOT EXISTS idx_sale_items_sale_id ON sale_items(sale_id);
+    CREATE INDEX IF NOT EXISTS idx_sale_items_product_id ON sale_items(product_id);
+    CREATE INDEX IF NOT EXISTS idx_clients_name ON clients(name);
+    CREATE INDEX IF NOT EXISTS idx_clients_tax_id ON clients(tax_id);
+    CREATE INDEX IF NOT EXISTS idx_clients_tax_id ON clients(tax_id);
+  `)
+
+  console.log('✅ Esquema SQLite inicializado con optimizaciones de rendimiento.')
 }
 
 // ==========================================
@@ -105,14 +136,14 @@ function migrateFromJSON() {
       const jsonData = JSON.parse(rawData)
 
       const insertProduct = db.prepare(`
-                INSERT INTO products (id, code, name, description, category, price, cost, stock, min_stock, unit, created_at, updated_at)
-                VALUES (@id, @code, @name, @description, @category, @price, @cost, @stock, @min_stock, @unit, @created_at, @updated_at)
+                INSERT INTO products(id, code, name, description, category, price, cost, stock, min_stock, unit, created_at, updated_at)
+  VALUES(@id, @code, @name, @description, @category, @price, @cost, @stock, @min_stock, @unit, @created_at, @updated_at)
             `)
 
-      const insertCategory = db.prepare(`INSERT OR IGNORE INTO categories (id, name, description, created_at) VALUES (@id, @name, @description, @created_at)`)
-      const insertSupplier = db.prepare(`INSERT INTO suppliers (id, name, contact, phone, email, address, created_at) VALUES (@id, @name, @contact, @phone, @email, @address, @created_at)`)
-      const insertSale = db.prepare(`INSERT INTO sales (id, subtotal, tax, discount, total, payment_method, customer_name, status, created_at) VALUES (@id, @subtotal, @tax, @discount, @total, @payment_method, @customer_name, @status, @created_at)`)
-      const insertSaleItem = db.prepare(`INSERT INTO sale_items (sale_id, product_id, product_code, product_name, quantity, unit_price, subtotal) VALUES (@sale_id, @product_id, @product_code, @product_name, @quantity, @unit_price, @subtotal)`)
+      const insertCategory = db.prepare(`INSERT OR IGNORE INTO categories(id, name, description, created_at) VALUES(@id, @name, @description, @created_at)`)
+      const insertSupplier = db.prepare(`INSERT INTO suppliers(id, name, contact, phone, email, address, created_at) VALUES(@id, @name, @contact, @phone, @email, @address, @created_at)`)
+      const insertSale = db.prepare(`INSERT INTO sales(id, subtotal, tax, discount, total, payment_method, customer_name, status, created_at) VALUES(@id, @subtotal, @tax, @discount, @total, @payment_method, @customer_name, @status, @created_at)`)
+      const insertSaleItem = db.prepare(`INSERT INTO sale_items(sale_id, product_id, product_code, product_name, quantity, unit_price, subtotal) VALUES(@sale_id, @product_id, @product_code, @product_name, @quantity, @unit_price, @subtotal)`)
 
       const migration = db.transaction(() => {
         if (jsonData.products) {
@@ -175,8 +206,8 @@ function migrateFromJSON() {
 function initializeDemoData() {
   console.log('📦 Inicializando datos de demostración...')
   const insert = db.prepare(`
-        INSERT INTO products (code, name, description, category, price, cost, stock, min_stock, unit, created_at, updated_at)
-        VALUES (@code, @name, @description, @category, @price, @cost, @stock, @min_stock, @unit, @created_at, @updated_at)
+        INSERT INTO products(code, name, description, category, price, cost, stock, min_stock, unit, created_at, updated_at)
+  VALUES(@code, @name, @description, @category, @price, @cost, @stock, @min_stock, @unit, @created_at, @updated_at)
     `)
 
   const demoProducts = [
@@ -199,6 +230,7 @@ function initializeDemoData() {
 // 3. Operaciones de Base de Datos (Queries)
 // ==========================================
 
+// Helper interno para logs ELIMINADO
 export const productQueries = {
   getAll: (): Product[] => {
     return db.prepare('SELECT * FROM products ORDER BY name ASC').all() as Product[]
@@ -209,30 +241,36 @@ export const productQueries = {
   },
 
   search: (term: string): Product[] => {
-    const pattern = `%${term}%`
+    const pattern = `% ${term}% `
     return db.prepare(`
-            SELECT * FROM products 
+  SELECT * FROM products 
             WHERE name LIKE ? OR code LIKE ? OR description LIKE ? OR category LIKE ?
-        `).all(pattern, pattern, pattern, pattern) as Product[]
+    `).all(pattern, pattern, pattern, pattern) as Product[]
   },
 
   create: (product: Omit<Product, 'id'> & { id?: number }): Product => {
     // Permitir insertar ID explícito (para restauraciones) o NULL (autoincrement)
     const stmt = db.prepare(`
-            INSERT INTO products (id, code, name, description, category, price, cost, stock, min_stock, unit, image, supplier_id, created_at, updated_at)
-            VALUES (@id, @code, @name, @description, @category, @price, @cost, @stock, @min_stock, @unit, @image, @supplier_id, @created_at, @updated_at)
-        `)
+            INSERT INTO products(id, code, name, description, category, price, cost, stock, min_stock, unit, image, supplier_id, created_at, updated_at)
+  VALUES(@id, @code, @name, @description, @category, @price, @cost, @stock, @min_stock, @unit, @image, @supplier_id, @created_at, @updated_at)
+    `)
 
     const info = stmt.run({
       ...product,
       id: product.id || null,
+      description: product.description || '',
+      category: product.category || '',
+      cost: product.cost || 0,
+      unit: product.unit || 'unidad',
       image: product.image || null,
       supplier_id: product.supplier_id || null,
       created_at: product.created_at || new Date().toISOString(),
       updated_at: product.updated_at || new Date().toISOString()
     })
 
-    return { ...product, id: Number(info.lastInsertRowid) }
+    const newId = Number(info.lastInsertRowid)
+
+    return { ...product, id: newId }
   },
 
   createOrUpdate: (product: Omit<Product, 'id'> & { id?: number }): { product: Product; isNew: boolean } => {
@@ -243,19 +281,19 @@ export const productQueries = {
       // Actualizar producto existente
       const updateStmt = db.prepare(`
         UPDATE products 
-        SET name = @name, 
-            description = @description, 
-            category = @category, 
-            price = @price, 
-            cost = @cost, 
-            stock = @stock, 
-            min_stock = @min_stock, 
-            unit = @unit, 
-            image = @image, 
-            supplier_id = @supplier_id,
-            updated_at = @updated_at 
+        SET name = @name,
+    description = @description,
+    category = @category,
+    price = @price,
+    cost = @cost,
+    stock = @stock,
+    min_stock = @min_stock,
+    unit = @unit,
+    image = @image,
+    supplier_id = @supplier_id,
+    updated_at = @updated_at 
         WHERE code = @code
-      `)
+    `)
 
       updateStmt.run({
         ...product,
@@ -264,29 +302,39 @@ export const productQueries = {
         updated_at: new Date().toISOString()
       })
 
-      return { 
-        product: { ...existing, ...product, id: existing.id }, 
-        isNew: false 
+      // Log de actualización ELIMINADO
+
+      return {
+        product: { ...existing, ...product, id: existing.id },
+        isNew: false
       }
     } else {
       // Crear nuevo producto
       const insertStmt = db.prepare(`
-        INSERT INTO products (id, code, name, description, category, price, cost, stock, min_stock, unit, image, supplier_id, created_at, updated_at)
-        VALUES (@id, @code, @name, @description, @category, @price, @cost, @stock, @min_stock, @unit, @image, @supplier_id, @created_at, @updated_at)
+        INSERT INTO products(id, code, name, description, category, price, cost, stock, min_stock, unit, image, supplier_id, created_at, updated_at)
+  VALUES(@id, @code, @name, @description, @category, @price, @cost, @stock, @min_stock, @unit, @image, @supplier_id, @created_at, @updated_at)
       `)
 
       const info = insertStmt.run({
         ...product,
         id: product.id || null,
+        description: product.description || '',
+        category: product.category || '',
+        cost: product.cost || 0,
+        unit: product.unit || 'unidad',
         image: product.image || null,
         supplier_id: product.supplier_id || null,
         created_at: product.created_at || new Date().toISOString(),
         updated_at: product.updated_at || new Date().toISOString()
       })
 
-      return { 
-        product: { ...product, id: Number(info.lastInsertRowid) }, 
-        isNew: true 
+      const newId = Number(info.lastInsertRowid)
+
+
+
+      return {
+        product: { ...product, id: newId },
+        isNew: true
       }
     }
   },
@@ -295,7 +343,9 @@ export const productQueries = {
     const fields = Object.keys(productData).filter(key => key !== 'id' && key !== 'created_at')
     if (fields.length === 0) return productQueries.getById(id) || null
 
-    const setClause = fields.map(field => `${field} = @${field}`).join(', ')
+
+
+    const setClause = fields.map(field => `${field} = @${field} `).join(', ')
     const stmt = db.prepare(`UPDATE products SET ${setClause}, updated_at = @updated_at WHERE id = @id`)
 
     stmt.run({
@@ -303,6 +353,8 @@ export const productQueries = {
       id,
       updated_at: new Date().toISOString()
     })
+
+    // Registrar log si fue un ajuste de stock ELIMINADO
 
     return productQueries.getById(id) || null
   },
@@ -334,9 +386,75 @@ export const categoryQueries = {
   }
 }
 
+export const clientQueries = {
+  getAll: (): Client[] => {
+    return db.prepare('SELECT * FROM clients ORDER BY name ASC').all() as Client[]
+  },
+
+  getById: (id: number): Client | undefined => {
+    return db.prepare('SELECT * FROM clients WHERE id = ?').get(id) as Client | undefined
+  },
+
+  search: (term: string): Client[] => {
+    const pattern = `%${term}%`
+    return db.prepare(`
+            SELECT * FROM clients 
+            WHERE name LIKE ? OR tax_id LIKE ? OR phone LIKE ?
+        `).all(pattern, pattern, pattern) as Client[]
+  },
+
+  create: (client: Omit<Client, 'id'> & { id?: number }): Client => {
+    const stmt = db.prepare(`
+            INSERT INTO clients(id, name, tax_id, address, phone, email, notes, created_at, updated_at)
+            VALUES(@id, @name, @tax_id, @address, @phone, @email, @notes, @created_at, @updated_at)
+        `)
+
+    const info = stmt.run({
+      ...client,
+      id: client.id || null,
+      tax_id: client.tax_id || null,
+      address: client.address || null,
+      phone: client.phone || null,
+      email: client.email || null,
+      notes: client.notes || '',
+      created_at: client.created_at || new Date().toISOString(),
+      updated_at: client.updated_at || new Date().toISOString()
+    })
+
+    return { ...client, id: Number(info.lastInsertRowid) }
+  },
+
+  update: (id: number, clientData: Partial<Client>): Client | null => {
+    const fields = Object.keys(clientData).filter(key => key !== 'id' && key !== 'created_at')
+    if (fields.length === 0) return clientQueries.getById(id) || null
+
+    const setClause = fields.map(field => `${field} = @${field}`).join(', ')
+    const stmt = db.prepare(`UPDATE clients SET ${setClause}, updated_at = @updated_at WHERE id = @id`)
+
+    stmt.run({
+      ...clientData,
+      id,
+      updated_at: new Date().toISOString()
+    })
+
+    return clientQueries.getById(id) || null
+  },
+
+  delete: (id: number): boolean => {
+    const info = db.prepare('DELETE FROM clients WHERE id = ?').run(id)
+    return info.changes > 0
+  }
+}
+
 export const supplierQueries = {
   getAll: (): Supplier[] => {
-    return db.prepare('SELECT * FROM suppliers ORDER BY name ASC').all() as Supplier[]
+    return db.prepare(`
+      SELECT s.*, count(p.id) as products_count 
+      FROM suppliers s
+      LEFT JOIN products p ON s.id = p.supplier_id
+      GROUP BY s.id
+      ORDER BY s.name ASC
+    `).all() as Supplier[]
   },
 
   getById: (id: number): Supplier | undefined => {
@@ -345,10 +463,18 @@ export const supplierQueries = {
 
   create: (supplier: Omit<Supplier, 'id'> & { id?: number }): Supplier => {
     const stmt = db.prepare(`
-            INSERT INTO suppliers (id, name, contact, phone, email, address, created_at)
-            VALUES (@id, @name, @contact, @phone, @email, @address, @created_at)
+            INSERT INTO suppliers(id, name, contact, phone, email, address, created_at)
+  VALUES(@id, @name, @contact, @phone, @email, @address, @created_at)
         `)
-    const info = stmt.run({ ...supplier, id: supplier.id || null, created_at: supplier.created_at || new Date().toISOString() })
+    const info = stmt.run({
+      ...supplier,
+      id: supplier.id || null,
+      contact: supplier.contact || null,
+      phone: supplier.phone || null,
+      email: supplier.email || null,
+      address: supplier.address || null,
+      created_at: supplier.created_at || new Date().toISOString()
+    })
     return { ...supplier, id: Number(info.lastInsertRowid) }
   },
 
@@ -356,7 +482,7 @@ export const supplierQueries = {
     const fields = Object.keys(supplierData).filter(key => key !== 'id' && key !== 'created_at')
     if (fields.length === 0) return supplierQueries.getById(id) || null
 
-    const setClause = fields.map(field => `${field} = @${field}`).join(', ')
+    const setClause = fields.map(field => `${field} = @${field} `).join(', ')
     const stmt = db.prepare(`UPDATE suppliers SET ${setClause} WHERE id = @id`)
 
     stmt.run({ ...supplierData, id })
@@ -392,9 +518,9 @@ export const saleQueries = {
     const createTx = db.transaction(() => {
       // 1. Insertar Venta (Permite restaurar ID, status y fechas originales)
       const insertSale = db.prepare(`
-                INSERT INTO sales (id, subtotal, tax, discount, total, payment_method, customer_name, notes, status, created_at)
-                VALUES (@id, @subtotal, @tax, @discount, @total, @payment_method, @customer_name, @notes, @status, @created_at)
-            `)
+                INSERT INTO sales(id, subtotal, tax, discount, total, payment_method, customer_name, notes, status, created_at)
+  VALUES(@id, @subtotal, @tax, @discount, @total, @payment_method, @customer_name, @notes, @status, @created_at)
+    `)
 
       const info = insertSale.run({
         ...sale,
@@ -407,8 +533,8 @@ export const saleQueries = {
 
       // 2. Insertar Items y Actualizar Stock
       const insertItem = db.prepare(`
-                INSERT INTO sale_items (sale_id, product_id, product_code, product_name, quantity, unit_price, subtotal)
-                VALUES (@sale_id, @product_id, @product_code, @product_name, @quantity, @unit_price, @subtotal)
+                INSERT INTO sale_items(sale_id, product_id, product_code, product_name, quantity, unit_price, subtotal)
+  VALUES(@sale_id, @product_id, @product_code, @product_name, @quantity, @unit_price, @subtotal)
             `)
 
       const updateStock = db.prepare(`UPDATE products SET stock = stock - @qty WHERE id = @id`)
@@ -439,6 +565,7 @@ export const saleQueries = {
         })
 
         if (!isRestore) {
+          // Actualizar stock
           updateStock.run({ qty: item.quantity, id: item.product_id })
         }
       }
@@ -456,7 +583,7 @@ export const saleQueries = {
 
   getSalesToday: (): Sale[] => {
     const today = new Date().toISOString().split('T')[0]
-    const sales = db.prepare('SELECT * FROM sales WHERE created_at LIKE ? ORDER BY created_at DESC').all(`${today}%`) as Sale[]
+    const sales = db.prepare('SELECT * FROM sales WHERE created_at LIKE ? ORDER BY created_at DESC').all(`${today}% `) as Sale[]
 
     const getItems = db.prepare('SELECT * FROM sale_items WHERE sale_id = ?')
     return sales.map(sale => ({
@@ -467,6 +594,15 @@ export const saleQueries = {
 
   getRecent: (limit: number = 10): Sale[] => {
     const sales = db.prepare('SELECT * FROM sales ORDER BY created_at DESC LIMIT ?').all(limit) as Sale[]
+    const getItems = db.prepare('SELECT * FROM sale_items WHERE sale_id = ?')
+    return sales.map(sale => ({
+      ...sale,
+      items: getItems.all(sale.id) as SaleItem[]
+    }))
+  },
+
+  getByCustomerName: (name: string): Sale[] => {
+    const sales = db.prepare('SELECT * FROM sales WHERE customer_name = ? ORDER BY created_at DESC').all(name) as Sale[]
     const getItems = db.prepare('SELECT * FROM sale_items WHERE sale_id = ?')
     return sales.map(sale => ({
       ...sale,
@@ -486,6 +622,9 @@ export const cancelSale = (id: number): Sale | null => {
     const updateStock = db.prepare('UPDATE products SET stock = stock + @qty WHERE id = @id')
 
     for (const item of items) {
+
+
+      // Restaurar stock
       updateStock.run({ qty: item.quantity, id: item.product_id })
     }
 
@@ -499,6 +638,127 @@ export const cancelSale = (id: number): Sale | null => {
   return result
 }
 
+// ==========================================
+// Inventory Logs (Kardex / Trazabilidad)
+// ==========================================
+
+// Logs de Inventario ELIMINADOS
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function restoreDatabase(data: any) {
+  const restoreTx = db.transaction(() => {
+    console.log('🔄 Iniciando restauración de base de datos...')
+
+    // 1. Limpiar todo
+    db.prepare('DELETE FROM sale_items').run()
+    db.prepare('DELETE FROM sales').run()
+    db.prepare('DELETE FROM products').run()
+    db.prepare('DELETE FROM categories').run()
+    db.prepare('DELETE FROM suppliers').run()
+    db.prepare('DELETE FROM clients').run()
+    db.prepare('DELETE FROM sqlite_sequence').run()
+
+    // Prepared Statements
+    const insertSupplier = db.prepare(`
+        INSERT INTO suppliers(id, name, contact, phone, email, address, created_at)
+  VALUES(@id, @name, @contact, @phone, @email, @address, @created_at)
+    `)
+
+    const insertCategory = db.prepare(`
+        INSERT INTO categories(id, name, description, created_at)
+  VALUES(@id, @name, @description, @created_at)
+    `)
+
+    const insertProduct = db.prepare(`
+        INSERT INTO products(id, code, name, description, category, price, cost, stock, min_stock, unit, image, supplier_id, created_at, updated_at)
+  VALUES(@id, @code, @name, @description, @category, @price, @cost, @stock, @min_stock, @unit, @image, @supplier_id, @created_at, @updated_at)
+    `)
+
+    const insertSale = db.prepare(`
+        INSERT INTO sales(id, subtotal, tax, discount, total, payment_method, customer_name, notes, status, created_at)
+  VALUES(@id, @subtotal, @tax, @discount, @total, @payment_method, @customer_name, @notes, @status, @created_at)
+    `)
+
+    const insertSaleItem = db.prepare(`
+        INSERT INTO sale_items(sale_id, product_id, product_code, product_name, quantity, unit_price, subtotal)
+  VALUES(@sale_id, @product_id, @product_code, @product_name, @quantity, @unit_price, @subtotal)
+    `)
+
+    // 2. Restaurar Proveedores
+    if (data.suppliers) {
+      for (const s of data.suppliers) {
+        insertSupplier.run({
+          id: s.id, name: s.name, contact: s.contact || '', phone: s.phone || '',
+          email: s.email || '', address: s.address || '', created_at: s.created_at || new Date().toISOString()
+        })
+      }
+    }
+
+    // 3. Restaurar Categorías
+    if (data.categories) {
+      for (const c of data.categories) {
+        insertCategory.run({
+          id: c.id, name: c.name, description: c.description || '', created_at: c.created_at || new Date().toISOString()
+        })
+      }
+    }
+
+    // 4. Restaurar Productos
+    if (data.products) {
+      for (const p of data.products) {
+        insertProduct.run({
+          id: p.id, code: p.code, name: p.name, description: p.description || '', category: p.category || '',
+          price: p.price, cost: p.cost || 0, stock: p.stock, min_stock: p.min_stock,
+          unit: p.unit || 'unidad', image: p.image || null, supplier_id: p.supplier_id || null,
+          created_at: p.created_at || new Date().toISOString(),
+          updated_at: p.updated_at || new Date().toISOString()
+        })
+      }
+    }
+
+    // 5. Restaurar Ventas
+    if (data.sales) {
+      for (const s of data.sales) {
+        insertSale.run({
+          id: s.id, subtotal: s.subtotal, tax: s.tax, discount: s.discount, total: s.total,
+          payment_method: s.payment_method, customer_name: s.customer_name || '',
+          notes: s.notes || '', status: s.status || 'completed',
+          created_at: s.created_at || new Date().toISOString()
+        })
+
+        if (s.items) {
+          for (const item of s.items) {
+            insertSaleItem.run({
+              sale_id: s.id, product_id: item.product_id || 0,
+              product_code: item.product_code || '', product_name: item.product_name || '',
+              quantity: item.quantity, unit_price: item.unit_price, subtotal: item.subtotal
+            })
+          }
+        }
+      }
+    }
+    // 6. Restaurar Clientes
+    if (data.clients) {
+      const insertClient = db.prepare(`
+        INSERT INTO clients(id, name, tax_id, address, phone, email, notes, created_at, updated_at)
+        VALUES(@id, @name, @tax_id, @address, @phone, @email, @notes, @created_at, @updated_at)
+      `)
+
+      for (const c of data.clients) {
+        insertClient.run({
+          id: c.id, name: c.name, tax_id: c.tax_id || null, address: c.address || null,
+          phone: c.phone || null, email: c.email || null, notes: c.notes || '',
+          created_at: c.created_at || new Date().toISOString(),
+          updated_at: c.updated_at || new Date().toISOString()
+        })
+      }
+    }
+  })
+
+  restoreTx()
+  console.log('✅ Restauración completada exitosamente.')
+}
+
 export function clearAll() {
   const clearTx = db.transaction(() => {
     db.prepare('DELETE FROM sale_items').run()
@@ -506,11 +766,14 @@ export function clearAll() {
     db.prepare('DELETE FROM products').run()
     db.prepare('DELETE FROM categories').run()
     db.prepare('DELETE FROM suppliers').run()
+    db.prepare('DELETE FROM clients').run()
     db.prepare('DELETE FROM sqlite_sequence').run()
   })
   clearTx()
   console.log('✅ Base de datos limpiada completamente')
 }
+
+
 
 export function initializeDatabase() {
   initSchema()
@@ -519,7 +782,7 @@ export function initializeDatabase() {
   } catch (e) {
     console.error('Error durante la migración/inicialización:', e)
   }
-  console.log(`✅ Base de datos SQLite activa en: ${dbPath}`)
+  console.log(`✅ Base de datos SQLite activa en: ${dbPath} `)
 }
 
 export function closeDatabase() {

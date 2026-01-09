@@ -36,6 +36,7 @@ interface ElectronAPI {
         getSalesToday: () => Promise<any[]>
         create: (sale: any) => Promise<any>
         cancel: (id: number) => Promise<any>
+        getByCustomerName: (name: string) => Promise<any[]>
     }
     suppliers: {
         getAll: () => Promise<any[]>
@@ -43,6 +44,27 @@ interface ElectronAPI {
         create: (supplier: any) => Promise<any>
         update: (id: number, supplier: any) => Promise<any>
         delete: (id: number) => Promise<{ success: boolean }>
+    }
+    clients: {
+        getAll: () => Promise<any[]>
+        getById: (id: number) => Promise<any>
+        search: (term: string) => Promise<any[]>
+        create: (client: any) => Promise<any>
+        update: (id: number, client: any) => Promise<any>
+        delete: (id: number) => Promise<{ success: boolean }>
+    }
+    database: {
+        clearAll: () => Promise<{ success: boolean; error?: string }>
+        restore: (data: any) => Promise<{ success: boolean; error?: string }>
+    }
+    inventoryLogs: {
+        getAll: () => Promise<any[]>
+        getByProductId: (productId: number) => Promise<any[]>
+        getByMovementType: (type: string) => Promise<any[]>
+        getByDateRange: (startDate: string, endDate: string) => Promise<any[]>
+        getRecent: (limit: number) => Promise<any[]>
+        create: (log: any) => Promise<any>
+        count: () => Promise<number>
     }
     backup: {
         create: (password?: string) => Promise<{ path: string; filename: string; encrypted: boolean }>
@@ -55,6 +77,15 @@ interface ElectronAPI {
     company: {
         get: () => Promise<any>
         update: (data: any) => Promise<void>
+    }
+    updater: {
+        checkForUpdates: () => Promise<{ success: boolean; data?: any; error?: string }>
+        downloadUpdate: () => Promise<{ success: boolean; error?: string }>
+        quitAndInstall: () => Promise<void>
+        getCurrentVersion: () => Promise<string>
+        setAutoCheck: (enabled: boolean, intervalHours?: number) => Promise<{ success: boolean }>
+        onStatusUpdate: (callback: (status: any) => void) => void
+        removeStatusListener: () => void
     }
 }
 

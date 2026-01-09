@@ -1,16 +1,44 @@
 import { ipcMain, app } from 'electron'
 import path from 'path'
 import fs from 'fs'
-import { productQueries, categoryQueries, saleQueries, supplierQueries, cancelSale, clearAll } from './database'
+import { productQueries, categoryQueries, saleQueries, supplierQueries, clientQueries, cancelSale, clearAll, restoreDatabase } from './database'
+import { logger } from './logger'
 
 export function registerIpcHandlers() {
     // Database Utils
+    ipcMain.handle('database:restore', (_event, data) => {
+        try {
+            console.log('📦 Recibida solicitud de restauración IPC')
+
+            // Validación de Versión Estricta
+            if (data.version !== '1.0') {
+                console.error('❌ Versión de backup incompatible:', data.version)
+                return {
+                    success: false,
+                    error: `Versión de backup incompatible (${data.version}). Se requiere versión 1.0`
+                }
+            }
+
+            if (!data.data || !data.data.products) {
+                return { success: false, error: 'Estructura de backup inválida' }
+            }
+
+            restoreDatabase(data.data)
+            logger.info('Restore', 'Base de datos restaurada correctamente')
+            return { success: true }
+        } catch (error) {
+            logger.error('Database Restore', error)
+            return { success: false, error: String(error) }
+        }
+    })
+
     ipcMain.handle('database:clearAll', () => {
         try {
             clearAll()
+            logger.info('Database', 'Base de datos limpiada')
             return { success: true }
         } catch (error) {
-            console.error('Error clearing database:', error)
+            logger.error('Database Clear', error)
             return { success: false, error: String(error) }
         }
     })
@@ -30,7 +58,12 @@ export function registerIpcHandlers() {
     })
 
     ipcMain.handle('products:create', (_event, product) => {
-        return productQueries.create(product)
+        try {
+            return productQueries.create(product)
+        } catch (error) {
+            logger.error('Products Create', error)
+            throw error
+        }
     })
 
     ipcMain.handle('products:createOrUpdate', (_event, product) => {
@@ -152,6 +185,10 @@ export function registerIpcHandlers() {
         return cancelSale(id)
     })
 
+    ipcMain.handle('sales:getByCustomerName', (_event, name: string) => {
+        return saleQueries.getByCustomerName(name)
+    })
+
     // Suppliers
     ipcMain.handle('suppliers:getAll', () => {
         return supplierQueries.getAll()
@@ -162,7 +199,12 @@ export function registerIpcHandlers() {
     })
 
     ipcMain.handle('suppliers:create', (_event, supplier) => {
-        return supplierQueries.create(supplier)
+        try {
+            return supplierQueries.create(supplier)
+        } catch (error) {
+            logger.error('Suppliers Create', error)
+            throw error
+        }
     })
 
     ipcMain.handle('suppliers:update', (_event, id: number, supplier) => {
@@ -174,6 +216,40 @@ export function registerIpcHandlers() {
         supplierQueries.delete(id)
         return { success: true }
     })
+
+    // Clients
+    ipcMain.handle('clients:getAll', () => {
+        return clientQueries.getAll()
+    })
+
+    ipcMain.handle('clients:getById', (_event, id: number) => {
+        return clientQueries.getById(id)
+    })
+
+    ipcMain.handle('clients:search', (_event, term: string) => {
+        return clientQueries.search(term)
+    })
+
+    ipcMain.handle('clients:create', (_event, client) => {
+        try {
+            return clientQueries.create(client)
+        } catch (error) {
+            logger.error('Clients Create', error)
+            throw error
+        }
+    })
+
+    ipcMain.handle('clients:update', (_event, id: number, client) => {
+        const result = clientQueries.update(id, client)
+        return result || { id, ...client }
+    })
+
+    ipcMain.handle('clients:delete', (_event, id: number) => {
+        clientQueries.delete(id)
+        return { success: true }
+    })
+
+    // Inventory Logs handlers REMOVED
 
     console.log('✅ IPC Handlers registered')
 }

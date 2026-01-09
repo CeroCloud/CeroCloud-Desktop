@@ -2,10 +2,9 @@ import { useRef, useEffect } from 'react'
 import { Outlet, useNavigate } from 'react-router-dom'
 import { Sidebar } from './Sidebar'
 import { Header } from './Header'
-import { motion } from 'framer-motion'
+import { UpdateNotifier } from '@/components/update/UpdateNotifier'
 
 export function MainLayout() {
-    // const { sidebarCollapsed } = useUIStore() // Not needed here as Sidebar handles its own width
     const mainRef = useRef<HTMLDivElement>(null)
     const navigate = useNavigate()
 
@@ -58,28 +57,26 @@ export function MainLayout() {
     }, [navigate])
 
     return (
-        <div className="flex h-screen bg-emerald-50 dark:bg-gray-900 overflow-hidden">
+        <div className="flex h-screen bg-slate-50 dark:bg-gray-900 overflow-hidden">
             {/* Sidebar with Auto Width */}
             <Sidebar />
 
             {/* Main Content Area */}
-            <div className="flex-1 flex flex-col min-w-0 bg-emerald-50 dark:bg-gray-900 transition-all duration-300">
+            <div className="flex-1 flex flex-col min-w-0 bg-slate-50 dark:bg-gray-900 transition-all duration-300">
                 <Header />
 
                 <main
                     ref={mainRef}
                     className="flex-1 overflow-y-auto overflow-x-hidden p-6 relative scroll-smooth"
                 >
-                    <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.3 }}
-                        className="h-full container mx-auto max-w-7xl animate-in fade-in"
-                    >
+                    <div className="h-full container mx-auto max-w-7xl">
                         <Outlet />
-                    </motion.div>
+                    </div>
                 </main>
             </div>
+
+            {/* Update Notifier - Global */}
+            <UpdateNotifier />
         </div>
     )
 }

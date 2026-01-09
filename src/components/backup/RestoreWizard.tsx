@@ -2,7 +2,7 @@
 // @ts-nocheck
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from 'react'
-import { X, Upload, CheckCircle, AlertTriangle, FileArchive, Loader2, Lock, Eye, EyeOff, ArrowLeft, Database, Calendar, Package, ShoppingCart } from 'lucide-react'
+import { X, Upload, CheckCircle, AlertTriangle, FileArchive, Loader2, Lock, Eye, EyeOff, ArrowLeft, Database, Calendar, Package, ShoppingCart, Users, Truck } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { toast } from 'sonner'
 import { zipBackupService } from '@/services/zipBackupService'
@@ -84,19 +84,15 @@ export function RestoreWizard({ onClose, onRestoreComplete }: RestoreWizardProps
 
             const { data, settings } = result
 
-            // Clear current database completely
-            const clearResult = await window.electronAPI.database.clearAll()
-            if (!clearResult?.success) {
-                throw new Error(clearResult?.error || 'Error al limpiar la base de datos')
-            }
+            // Usar restauración nativa del backend (más rápido y seguro)
+            const restoreResult = await window.electronAPI.database.restore({
+                version: '1.0',
+                data: data
+            })
 
-            // Insert restored data
-            for (const product of data.products) await window.electronAPI.products.create(product)
-            for (const category of data.categories || []) {
-                if (category.name) await window.electronAPI.categories.create(category.name, category.description)
+            if (!restoreResult.success) {
+                throw new Error(restoreResult.error || 'Error al restaurar la base de datos')
             }
-            for (const sale of data.sales || []) await window.electronAPI.sales.create(sale)
-            for (const supplier of data.suppliers || []) await window.electronAPI.suppliers.create(supplier)
 
             // Restore settings
             if (settings) {
@@ -120,17 +116,17 @@ export function RestoreWizard({ onClose, onRestoreComplete }: RestoreWizardProps
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     onClick={step !== 'restoring' ? onClose : undefined}
-                    className="absolute inset-0 bg-black/60 backdrop-blur-md"
+                    className="absolute inset-0 bg-black/20 backdrop-blur-sm"
                 />
 
                 <motion.div
                     initial={{ opacity: 0, scale: 0.95, y: 20 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                    className="relative w-full max-w-2xl bg-white dark:bg-[#0f1117] rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] border border-gray-100 dark:border-gray-800"
+                    className="relative w-full max-w-2xl bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] border border-gray-100 dark:border-gray-800"
                 >
                     {/* Header */}
-                    <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 dark:border-gray-800 bg-white/80 dark:bg-[#0f1117]/80 backdrop-blur sticky top-0 z-10">
+                    <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 dark:border-gray-800 bg-white/50 dark:bg-gray-900/50 backdrop-blur sticky top-0 z-10">
                         <div className="flex items-center gap-3">
                             {step === 'password' && (
                                 <button
@@ -164,26 +160,26 @@ export function RestoreWizard({ onClose, onRestoreComplete }: RestoreWizardProps
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     exit={{ opacity: 0, y: -10 }}
-                                    className="space-y-8"
+                                    className="space-y-5"
                                 >
                                     <div className="text-center">
                                         <div className="relative inline-block">
                                             <div className="absolute inset-0 bg-blue-500/20 blur-2xl rounded-full"></div>
-                                            <div className="relative w-24 h-24 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/40 dark:to-blue-900/20 rounded-full flex items-center justify-center mx-auto mb-6 border border-blue-200 dark:border-blue-800 shadow-xl">
-                                                <FileArchive className="w-10 h-10 text-blue-600 dark:text-blue-400 drop-shadow-sm" />
+                                            <div className="relative w-16 h-16 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/40 dark:to-blue-900/20 rounded-full flex items-center justify-center mx-auto mb-4 border border-blue-200 dark:border-blue-800 shadow-xl">
+                                                <FileArchive className="w-8 h-8 text-blue-600 dark:text-blue-400 drop-shadow-sm" />
                                             </div>
                                         </div>
-                                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-1">
                                             Selecciona tu Respaldo
                                         </h3>
-                                        <p className="text-gray-500 dark:text-gray-400 max-w-sm mx-auto">
-                                            Sube el archivo <code className="bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded text-xs font-mono">.cerobak</code> para comenzar la restauración de tus datos
+                                        <p className="text-sm text-gray-500 dark:text-gray-400 max-w-sm mx-auto">
+                                            Sube el archivo <code className="bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded text-xs font-mono">.cerobak</code> para comenzar
                                         </p>
                                     </div>
 
                                     <div
                                         className={`
-                                            relative group border-2 border-dashed rounded-3xl p-12 transition-all duration-300 cursor-pointer text-center
+                                            relative group border-2 border-dashed rounded-3xl p-8 transition-all duration-300 cursor-pointer text-center
                                             ${isDragging
                                                 ? 'border-primary bg-primary/5 scale-[1.02]'
                                                 : 'border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/40 hover:border-primary/50 hover:bg-white dark:hover:bg-gray-800'
@@ -200,24 +196,24 @@ export function RestoreWizard({ onClose, onRestoreComplete }: RestoreWizardProps
                                             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
                                         />
                                         <div className="relative z-10 pointer-events-none transform group-hover:-translate-y-1 transition-transform duration-300">
-                                            <div className="w-16 h-16 bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 flex items-center justify-center mx-auto mb-4 text-primary group-hover:text-primary group-hover:scale-110 transition-all">
-                                                <Upload className="w-8 h-8" />
+                                            <div className="w-12 h-12 bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 flex items-center justify-center mx-auto mb-3 text-primary group-hover:text-primary group-hover:scale-110 transition-all">
+                                                <Upload className="w-6 h-6" />
                                             </div>
-                                            <p className="text-lg font-bold text-gray-900 dark:text-white mb-1">
+                                            <p className="text-base font-bold text-gray-900 dark:text-white mb-0.5">
                                                 Click para buscar archivo
                                             </p>
-                                            <p className="text-sm text-gray-500">o arrástralo aquí dentro</p>
+                                            <p className="text-xs text-gray-500">o arrástralo aquí dentro</p>
                                         </div>
                                     </div>
 
-                                    <div className="bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800/50 rounded-2xl p-4 flex gap-4 backdrop-blur-sm">
-                                        <div className="p-2 bg-amber-100 dark:bg-amber-900/30 rounded-lg text-amber-600 shrink-0 h-fit">
-                                            <AlertTriangle className="w-5 h-5" />
+                                    <div className="bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800/50 rounded-2xl p-3 flex gap-3 backdrop-blur-sm items-start">
+                                        <div className="p-1.5 bg-amber-100 dark:bg-amber-900/30 rounded-lg text-amber-600 shrink-0 h-fit">
+                                            <AlertTriangle className="w-4 h-4" />
                                         </div>
                                         <div>
-                                            <h4 className="font-bold text-amber-800 dark:text-amber-200 text-sm mb-1">Advertencia Importante</h4>
-                                            <p className="text-sm text-amber-700/80 dark:text-amber-300/70 leading-relaxed">
-                                                Al restaurar, <strong>todos los datos actuales serán eliminados</strong> y reemplazados por el contenido del respaldo. Asegúrate de tener una copia reciente si es necesario.
+                                            <h4 className="font-bold text-amber-800 dark:text-amber-200 text-xs mb-0.5">Advertencia Importante</h4>
+                                            <p className="text-xs text-amber-700/80 dark:text-amber-300/70 leading-relaxed">
+                                                Al restaurar, <strong>todos los datos actuales serán eliminados</strong> y reemplazados. Asegúrate de tener una copia reciente.
                                             </p>
                                         </div>
                                     </div>
@@ -310,30 +306,30 @@ export function RestoreWizard({ onClose, onRestoreComplete }: RestoreWizardProps
                                     initial={{ opacity: 0, x: 20 }}
                                     animate={{ opacity: 1, x: 0 }}
                                     exit={{ opacity: 0, x: -20 }}
-                                    className="space-y-6"
+                                    className="space-y-5"
                                 >
-                                    <div className="text-center mb-6">
-                                        <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4 border border-red-200 dark:border-red-800">
-                                            <AlertTriangle className="w-8 h-8 text-red-600 dark:text-red-400" />
+                                    <div className="text-center mb-4">
+                                        <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-2 border border-red-200 dark:border-red-800">
+                                            <AlertTriangle className="w-6 h-6 text-red-600 dark:text-red-400" />
                                         </div>
-                                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
+                                        <h3 className="text-xl font-bold text-gray-900 dark:text-white">
                                             ¿Confirmar Restauración?
                                         </h3>
-                                        <p className="text-red-500 dark:text-red-400 mt-1 font-medium">
+                                        <p className="text-sm text-red-500 dark:text-red-400 mt-0.5 font-medium">
                                             Esta acción es irreversible y sobrescribirá tus datos
                                         </p>
                                     </div>
 
-                                    <div className="bg-gray-50 dark:bg-gray-900/50 p-6 rounded-3xl border border-gray-200 dark:border-gray-800">
-                                        <h4 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-4 border-b border-gray-200 dark:border-gray-800 pb-2">Contenido de la Copia</h4>
-                                        <div className="grid grid-cols-2 gap-4">
+                                    <div className="bg-gray-50 dark:bg-gray-900/50 p-4 rounded-2xl border border-gray-200 dark:border-gray-800">
+                                        <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 border-b border-gray-200 dark:border-gray-800 pb-1">Contenido de la Copia</h4>
+                                        <div className="grid grid-cols-2 gap-3">
                                             {backupInfo.metadata && (
-                                                <div className="col-span-2 flex items-center gap-3 p-3 bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700">
-                                                    <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-blue-600">
+                                                <div className="col-span-2 flex items-center gap-2 p-2 bg-white dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700">
+                                                    <div className="p-1.5 bg-blue-50 dark:bg-blue-900/20 rounded-md text-blue-600">
                                                         <Calendar className="w-4 h-4" />
                                                     </div>
                                                     <div className="overflow-hidden">
-                                                        <p className="text-xs text-gray-500">Fecha de Creación</p>
+                                                        <p className="text-[10px] text-gray-500 uppercase">Fecha de Creación</p>
                                                         <p className="text-sm font-bold text-gray-900 dark:text-white truncate">
                                                             {new Date(backupInfo.metadata.createdAt).toLocaleString()}
                                                         </p>
@@ -343,25 +339,47 @@ export function RestoreWizard({ onClose, onRestoreComplete }: RestoreWizardProps
 
                                             {backupInfo.stats && (
                                                 <>
-                                                    <div className="flex items-center gap-3 p-3 bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700">
-                                                        <div className="p-2 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg text-emerald-600">
+                                                    <div className="flex items-center gap-2 p-2 bg-white dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700">
+                                                        <div className="p-1.5 bg-emerald-50 dark:bg-emerald-900/20 rounded-md text-emerald-600">
                                                             <Package className="w-4 h-4" />
                                                         </div>
                                                         <div>
-                                                            <p className="text-xs text-gray-500">Productos</p>
+                                                            <p className="text-[10px] text-gray-500 uppercase">Productos</p>
                                                             <p className="text-sm font-bold text-gray-900 dark:text-white">
                                                                 {backupInfo.stats.productsCount}
                                                             </p>
                                                         </div>
                                                     </div>
-                                                    <div className="flex items-center gap-3 p-3 bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700">
-                                                        <div className="p-2 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg text-indigo-600">
+                                                    <div className="flex items-center gap-2 p-2 bg-white dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700">
+                                                        <div className="p-1.5 bg-indigo-50 dark:bg-indigo-900/20 rounded-md text-indigo-600">
                                                             <ShoppingCart className="w-4 h-4" />
                                                         </div>
                                                         <div>
-                                                            <p className="text-xs text-gray-500">Ventas</p>
+                                                            <p className="text-[10px] text-gray-500 uppercase">Ventas</p>
                                                             <p className="text-sm font-bold text-gray-900 dark:text-white">
                                                                 {backupInfo.stats.salesCount}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 p-2 bg-white dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700">
+                                                        <div className="p-1.5 bg-pink-50 dark:bg-pink-900/20 rounded-md text-pink-600">
+                                                            <Users className="w-4 h-4" />
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-[10px] text-gray-500 uppercase">Clientes</p>
+                                                            <p className="text-sm font-bold text-gray-900 dark:text-white">
+                                                                {backupInfo.stats.clientsCount}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 p-2 bg-white dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700">
+                                                        <div className="p-1.5 bg-orange-50 dark:bg-orange-900/20 rounded-md text-orange-600">
+                                                            <Truck className="w-4 h-4" />
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-[10px] text-gray-500 uppercase">Proveedores</p>
+                                                            <p className="text-sm font-bold text-gray-900 dark:text-white">
+                                                                {backupInfo.stats.suppliersCount}
                                                             </p>
                                                         </div>
                                                     </div>
@@ -370,18 +388,18 @@ export function RestoreWizard({ onClose, onRestoreComplete }: RestoreWizardProps
                                         </div>
                                     </div>
 
-                                    <div className="flex gap-4 pt-2">
+                                    <div className="flex gap-3 pt-1">
                                         <button
                                             onClick={() => setStep('upload-zip')}
-                                            className="flex-1 px-6 py-4 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-2xl font-bold transition-all"
+                                            className="flex-1 px-4 py-3 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl font-bold transition-all text-sm"
                                         >
-                                            Inseguro (Cancelar)
+                                            Cancelar
                                         </button>
                                         <button
                                             onClick={handleConfirmRestore}
-                                            className="flex-1 px-6 py-4 bg-red-600 hover:bg-red-700 text-white rounded-2xl font-bold transition-all shadow-lg shadow-red-600/30 flex items-center justify-center gap-2 hover:-translate-y-0.5"
+                                            className="flex-1 px-4 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-red-600/30 flex items-center justify-center gap-2 hover:-translate-y-0.5 text-sm"
                                         >
-                                            <Database className="w-5 h-5" />
+                                            <Database className="w-4 h-4" />
                                             Restaurar Datos
                                         </button>
                                     </div>

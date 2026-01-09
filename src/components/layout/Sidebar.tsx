@@ -8,15 +8,18 @@ import {
     Settings,
     ChevronLeft,
     ChevronRight,
-    Info
+    Info,
+    Truck,
+    Users,
 } from 'lucide-react'
 import { useUIStore } from '@/stores/uiStore'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { companyService } from '@/services/companyService'
+import pkg from '../../../package.json'
 
 export function Sidebar() {
-    const { sidebarCollapsed, toggleSidebar } = useUIStore()
+    const { sidebarCollapsed, toggleSidebar, setSidebarCollapsed } = useUIStore()
     const [companyInfo, setCompanyInfo] = useState({ name: 'CeroCloud', logo: '' })
 
     const loadCompanyInfo = () => {
@@ -35,15 +38,23 @@ export function Sidebar() {
             loadCompanyInfo()
         }
 
+        // Auto-collapse on mount if screen is < 1024px to save space
+        if (window.innerWidth < 1024 && !sidebarCollapsed) {
+            setSidebarCollapsed(true)
+        }
+
         window.addEventListener('company-settings-changed', handleSettingsChange)
         return () => window.removeEventListener('company-settings-changed', handleSettingsChange)
-    }, [])
+    }, [sidebarCollapsed, setSidebarCollapsed])
 
 
     const navigation = [
         { name: 'Dashboard', href: '/', icon: LayoutDashboard, shortcut: 'D' },
         { name: 'Inventario', href: '/inventory', icon: Package, shortcut: 'I' },
+
         { name: 'Ventas', href: '/sales', icon: ShoppingCart, shortcut: 'V' },
+        { name: 'Proveedores', href: '/suppliers', icon: Truck, shortcut: 'P' },
+        { name: 'Clientes', href: '/clients', icon: Users, shortcut: 'C' },
         { name: 'Reportes', href: '/reports', icon: FileText, shortcut: 'R' },
     ]
 
@@ -207,7 +218,7 @@ export function Sidebar() {
                         className="pt-4 mt-4 border-t border-gray-800"
                     >
                         <p className="text-[10px] text-gray-600 text-center font-mono">
-                            v1.0.1 RELEASE
+                            v{pkg.version} RELEASE
                         </p>
                     </motion.div>
                 )}

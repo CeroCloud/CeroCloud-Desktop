@@ -13,7 +13,8 @@ import {
     Check,
     User,
     Percent,
-    Ticket as TicketIcon
+    Ticket as TicketIcon,
+    ArrowUpDown
 } from 'lucide-react'
 import { productService } from '@/services/productService'
 import { saleService } from '@/services/saleService'
@@ -25,6 +26,8 @@ import { toast } from 'sonner'
 import { cn, getImageSrc } from '@/lib/utils'
 import { useCartStore } from '@/stores/cartStore'
 import { useNotificationStore } from '@/stores/notificationStore'
+import { clientService, type Client } from '@/services/clientService'
+import { LazyImage } from '@/components/ui/LazyImage'
 
 export function Sales() {
     // Data State
@@ -65,6 +68,51 @@ export function Sales() {
     const searchInputRef = useRef<HTMLInputElement>(null)
     const receivedAmountInputRef = useRef<HTMLInputElement>(null)
     const processSaleRef = useRef<() => void>(() => { })
+
+    // Client Autocomplete State
+    const [clientSearchResults, setClientSearchResults] = useState<Client[]>([])
+    const [showClientResults, setShowClientResults] = useState(false)
+    const clientSearchTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+    const clientContainerRef = useRef<HTMLDivElement>(null)
+
+    // Handle click outside client results
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (clientContainerRef.current && !clientContainerRef.current.contains(event.target as Node)) {
+                setShowClientResults(false)
+            }
+        }
+        document.addEventListener('mousedown', handleClickOutside)
+        return () => document.removeEventListener('mousedown', handleClickOutside)
+    }, [])
+
+    const handleClientSearch = (term: string) => {
+        setCustomerName(term)
+
+        if (clientSearchTimeoutRef.current) clearTimeout(clientSearchTimeoutRef.current)
+
+        if (term.length < 2) {
+            setClientSearchResults([])
+            setShowClientResults(false)
+            return
+        }
+
+        clientSearchTimeoutRef.current = setTimeout(async () => {
+            try {
+                const results = await clientService.search(term)
+                setClientSearchResults(results)
+                setShowClientResults(true)
+            } catch (err) {
+                console.error(err)
+            }
+        }, 300) // Debounce 300ms
+    }
+
+    const selectClient = (client: Client) => {
+        setCustomerName(client.name)
+        setShowClientResults(false)
+        setClientSearchResults([])
+    }
 
 
 
@@ -148,8 +196,10 @@ export function Sales() {
     // Filter Logic
     const filteredProducts = useMemo(() => {
         return products.filter(p => {
-            const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                p.code.toLowerCase().includes(searchTerm.toLowerCase())
+            const term = searchTerm.toLowerCase()
+            const matchesSearch = p.name.toLowerCase().includes(term) ||
+                p.code.toString().toLowerCase().includes(term) ||
+                (p.category && p.category.toLowerCase().includes(term))
             const matchesCategory = selectedCategory === 'all' || p.category === selectedCategory
             return matchesSearch && matchesCategory
         })
@@ -298,7 +348,7 @@ export function Sales() {
                         <input
                             ref={searchInputRef}
                             type="text"
-                            placeholder="Buscar producto... (F2)"
+                            placeholder="Buscar por nombre, código o categoría... (F2)"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="w-full pl-12 pr-4 py-3 text-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white border-none rounded-xl focus:ring-2 focus:ring-primary shadow-inner placeholder:text-gray-400"
@@ -313,21 +363,43 @@ export function Sales() {
                         )}
                     </div>
 
-                    <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                        {categories.map(cat => (
-                            <button
-                                key={cat}
-                                onClick={() => setSelectedCategory(cat)}
-                                className={cn(
-                                    "px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all",
-                                    selectedCategory === cat
-                                        ? "bg-primary text-white shadow-md shadow-primary/25"
-                                        : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
-                                )}
-                            >
-                                {cat === 'all' ? 'Todos' : cat}
-                            </button>
-                        ))}
+                    <div className="flex gap-2 w-full">
+                        {categories.length <= 5 ? (
+                            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide w-full">
+                                {categories.map(cat => (
+                                    <button
+                                        key={cat}
+                                        onClick={() => setSelectedCategory(cat)}
+                                        className={cn(
+                                            "px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all shrink-0",
+                                            selectedCategory === cat
+                                                ? "bg-primary text-white shadow-md shadow-primary/25"
+                                                : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                                        )}
+                                    >
+                                        {cat === 'all' ? 'Todos' : cat}
+                                    </button>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="relative w-full">
+                                <select
+                                    value={selectedCategory}
+                                    onChange={(e) => setSelectedCategory(e.target.value)}
+                                    className="w-full appearance-none bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 py-3 pl-4 pr-10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition-shadow cursor-pointer"
+                                    style={{ backgroundImage: 'none' }}
+                                >
+                                    {categories.map(cat => (
+                                        <option key={cat} value={cat}>
+                                            {cat === 'all' ? 'Todas las Categorías' : cat}
+                                        </option>
+                                    ))}
+                                </select>
+                                <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-500">
+                                    <ArrowUpDown className="w-4 h-4" />
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -339,7 +411,7 @@ export function Sales() {
                             <p>No se encontraron productos</p>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
                             {filteredProducts.map(product => (
                                 <ProductCard
                                     key={product.id}
@@ -459,20 +531,50 @@ export function Sales() {
                         {/* Customer & Inputs Row */}
                         <div className="p-4 space-y-3">
                             <div className="flex gap-3">
-                                <div className="relative flex-1 group">
+                                <div className="relative flex-1 group" ref={clientContainerRef}>
                                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                         <User className="w-4 h-4 text-gray-400 group-focus-within:text-primary transition-colors" />
                                     </div>
                                     <input
                                         type="text"
                                         value={activeTab.customerName}
-                                        onChange={(e) => setCustomerName(e.target.value)}
+                                        onChange={(e) => handleClientSearch(e.target.value)}
+                                        onFocus={() => activeTab.customerName.length >= 2 && setShowClientResults(true)}
                                         placeholder="Cliente (Público General)"
                                         className={cn(
                                             "w-full pl-10 pr-3 py-2.5 text-sm rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 text-gray-900 dark:text-gray-100 focus:bg-white dark:focus:bg-gray-800 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all placeholder:text-gray-400",
                                             settings.requireCustomerName && !activeTab.customerName && "border-red-300 ring-2 ring-red-50"
                                         )}
+                                        autoComplete="off"
                                     />
+                                    {/* Resultados Autocompletado */}
+                                    <AnimatePresence>
+                                        {showClientResults && clientSearchResults.length > 0 && (
+                                            <motion.div
+                                                initial={{ opacity: 0, y: 5 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                exit={{ opacity: 0, y: 5 }}
+                                                className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 max-h-60 overflow-y-auto z-50 py-1"
+                                            >
+                                                {clientSearchResults.map((client) => (
+                                                    <button
+                                                        key={client.id}
+                                                        onClick={() => selectClient(client)}
+                                                        className="w-full text-left px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex flex-col border-b border-gray-50 dark:border-gray-700 last:border-0"
+                                                    >
+                                                        <span className="font-bold text-sm text-gray-800 dark:text-gray-200">{client.name}</span>
+                                                        <div className="flex gap-2 text-xs text-gray-500">
+                                                            {client.tax_id && <span>NIT: {client.tax_id}</span>}
+                                                            {client.phone && <span>• {client.phone}</span>}
+                                                        </div>
+                                                    </button>
+                                                ))}
+                                                <div className="bg-gray-50 dark:bg-gray-900/50 p-2 text-center text-xs text-gray-400">
+                                                    {clientSearchResults.length} coincidencias
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
                                 </div>
 
                                 {settings.enableDiscounts && (
@@ -671,17 +773,18 @@ function ProductCard({ product, settings, onClick }: { product: Product; setting
             className="group bg-white dark:bg-gray-800 p-3 rounded-xl border border-gray-300 dark:border-gray-700 shadow-md hover:shadow-lg hover:border-primary/50 cursor-pointer transition-all flex flex-col h-full"
         >
             <div className="aspect-square bg-gray-100 dark:bg-gray-700 rounded-lg mb-3 overflow-hidden relative">
-                <img
+                <LazyImage
                     src={getImageSrc(product.image) || ""}
                     alt={product.name}
-                    className={cn("w-full h-full object-cover", !product.image && "hidden")}
+                    aspectRatio="aspect-square"
+                    className="w-full h-full object-cover"
+                    fallback={
+                        <div className="w-full h-full flex items-center justify-center text-gray-300">
+                            <Package className="w-8 h-8" />
+                        </div>
+                    }
                 />
-                {!product.image && (
-                    <div className="w-full h-full flex items-center justify-center text-gray-300">
-                        <Package className="w-8 h-8" />
-                    </div>
-                )}
-                <div className="absolute top-2 right-2 bg-black/60 text-white text-[10px] font-bold px-1.5 py-0.5 rounded backdrop-blur-md">
+                <div className="absolute top-2 right-2 bg-black/60 text-white text-[10px] font-bold px-1.5 py-0.5 rounded backdrop-blur-md z-20">
                     {product.stock}
                 </div>
             </div>
