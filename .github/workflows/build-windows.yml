@@ -1,0 +1,43 @@
+name: Build Windows Binaries
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build-windows:
+    name: Build Windows
+    runs-on: windows-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name }}
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          
+      - name: Install Dependencies
+        run: npm ci
+        
+      - name: Build Windows Binary
+        run: |
+          npm run type-check
+          npx vite build
+          npx electron-builder --win --config.asar=true --publish never
+        env:
+          NODE_ENV: production
+          
+      - name: Upload Windows Binaries to Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.event.release.tag_name }}
+          files: |
+            release/*.exe
+            release/latest.yml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
