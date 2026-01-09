@@ -5,16 +5,42 @@
             "name": "develop",
             "prerelease": "beta",
             "channel": "beta"
+        },
+        {
+            "name": "hotfix/*",
+            "prerelease": "hotfix"
         }
     ],
     "plugins": [
         "@semantic-release/commit-analyzer",
         "@semantic-release/release-notes-generator",
-        "@semantic-release/npm",
+        [
+            "@semantic-release/changelog",
+            {
+                "changelogFile": "changelog.md"
+            }
+        ],
+        [
+            "@semantic-release/npm",
+            {
+                "npmPublish": false
+            }
+        ],
         [
             "@semantic-release/exec",
             {
                 "prepareCmd": "npm run type-check && npx vite build && npx electron-builder --win --linux --config.asar=true"
+            }
+        ],
+        [
+            "@semantic-release/git",
+            {
+                "assets": [
+                    "package.json",
+                    "package-lock.json",
+                    "changelog.md"
+                ],
+                "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
             }
         ],
         [
