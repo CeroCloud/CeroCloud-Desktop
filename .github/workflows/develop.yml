@@ -59,7 +59,7 @@ jobs:
 
   beta-release:
     name: Beta Pre-release
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     needs: build
     if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
     permissions:

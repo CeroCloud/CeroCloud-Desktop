@@ -29,7 +29,7 @@
         [
             "@semantic-release/exec",
             {
-                "prepareCmd": "npm run type-check && npx vite build && npx electron-builder --linux --config.asar=true"
+                "prepareCmd": "npm run type-check && npx vite build && npx electron-builder --win --linux --config.asar=true"
             }
         ],
         [
