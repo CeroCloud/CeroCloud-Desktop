@@ -1,3 +1,19 @@
+# [1.2.0-beta.1](https://github.com/CeroCloud/CeroCloud-Desktop/compare/v1.1.0...v1.2.0-beta.1) (2026-01-09)
+
+
+### Bug Fixes
+
+* agregar plugins semantic-release faltantes y latest.yml ([e962ae0](https://github.com/CeroCloud/CeroCloud-Desktop/commit/e962ae004fee386957d6b395cc9cd67752525d92))
+* agregar prereleased trigger para build de Windows ([dcf2953](https://github.com/CeroCloud/CeroCloud-Desktop/commit/dcf2953f25aa988e1279992a1530412e26b4e7bf))
+* corregir semantic-release config y agregar plugins faltantes ([d2d229d](https://github.com/CeroCloud/CeroCloud-Desktop/commit/d2d229d7b0bed166cfe746cf3d83f9d42e60f24b))
+* separar build de Windows en workflow dedicado ([fd117c6](https://github.com/CeroCloud/CeroCloud-Desktop/commit/fd117c651c8726d7f5f9a3e4844c9b5d3d13e969))
+* sync hotfix v1.1.1 to develop ([7ec88b7](https://github.com/CeroCloud/CeroCloud-Desktop/commit/7ec88b7273bbe82756e08e467d8ba36384b3d035))
+
+
+### Features
+
+* agregar ejecución manual para build Windows ([e7bffbd](https://github.com/CeroCloud/CeroCloud-Desktop/commit/e7bffbdcaae0d8e74cba5542df6db5818530594b))
+
 ## [1.1.1-beta.2](https://github.com/CeroCloud/CeroCloud-Desktop/compare/v1.1.1-beta.1...v1.1.1-beta.2) (2026-01-09)
 
 
