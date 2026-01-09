@@ -1,41 +1,56 @@
-
-import { useState, useEffect } from 'react'
-import { Plus, Search, Edit2, Trash2, Package, Mail, Phone, MapPin, User } from 'lucide-react'
-import { supplierService, type Supplier } from '@/services/supplierService'
+import { useState, useEffect, useMemo } from 'react'
+import { createPortal } from 'react-dom'
+import {
+    Plus, Search, Edit2, Trash2, Package, Mail, Phone,
+    User, LayoutGrid, List as ListIcon,
+    ShoppingBag, Globe
+} from 'lucide-react'
+import { supplierService } from '@/services/supplierService'
+import { productService } from '@/services/productService'
+import { type Supplier, type Product } from '@/types/database'
 import { motion, AnimatePresence } from 'framer-motion'
 import { toast } from 'sonner'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { SupplierForm } from './SupplierForm'
+import { cn, getImageSrc } from '@/lib/utils'
+import { companyService } from '@/services/companyService'
 
 export function Suppliers() {
     const [suppliers, setSuppliers] = useState<Supplier[]>([])
+    const [allProducts, setAllProducts] = useState<Product[]>([])
     const [searchTerm, setSearchTerm] = useState('')
     const [loading, setLoading] = useState(true)
+    const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+    const [currencySymbol, setCurrencySymbol] = useState('$')
+
+    // Modals & Active State
     const [isFormOpen, setIsFormOpen] = useState(false)
     const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null)
     const [confirmOpen, setConfirmOpen] = useState(false)
     const [supplierToDelete, setSupplierToDelete] = useState<number | null>(null)
+    const [selectedSupplierForProducts, setSelectedSupplierForProducts] = useState<Supplier | null>(null)
 
     useEffect(() => {
-        loadSuppliers()
+        const settings = companyService.getSettings()
+        setCurrencySymbol(settings.currencySymbol)
+        loadData()
     }, [])
 
-    const loadSuppliers = async () => {
+    const loadData = async () => {
         try {
             setLoading(true)
-            const data = await supplierService.getAll()
-            setSuppliers(data)
+            const [suppliersData, productsData] = await Promise.all([
+                supplierService.getAll(),
+                productService.getAll()
+            ])
+            setSuppliers(suppliersData)
+            setAllProducts(productsData)
         } catch (error) {
-            console.error('Error loading suppliers:', error)
-            toast.error('Error al cargar proveedores')
+            console.error('Error loading data:', error)
+            toast.error('Error al cargar datos')
         } finally {
             setLoading(false)
         }
-    }
-
-    const handleEdit = (supplier: Supplier) => {
-        setEditingSupplier(supplier)
-        setIsFormOpen(true)
     }
 
     const handleDeleteClick = (id: number) => {
@@ -59,81 +74,141 @@ export function Suppliers() {
         }
     }
 
-    const filteredSuppliers = suppliers.filter(s =>
-        s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        s.contact_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        s.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        s.phone?.toLowerCase().includes(searchTerm.toLowerCase())
-    )
+    const filteredSuppliers = useMemo(() => {
+        return suppliers.filter(s =>
+            s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            s.contact?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            s.email?.toLowerCase().includes(searchTerm.toLowerCase())
+        )
+    }, [suppliers, searchTerm])
+
+    // Stats
+    const totalSuppliers = suppliers.length
+    const totalProductsSourced = filteredSuppliers.reduce((acc, s) => acc + (s.products_count || 0), 0)
 
     return (
-        <div className="space-y-6 pb-20">
-            {/* HEADER */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="space-y-6 pb-20 p-2">
+            {/* Header & Title */}
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
                     <h1 className="text-3xl font-black text-gray-900 dark:text-white tracking-tight">
                         Proveedores
                     </h1>
                     <p className="text-gray-500 dark:text-gray-400 mt-1">
-                        Gestiona tus {suppliers.length} proveedores
+                        Gestión de cadena de suministro y contactos
                     </p>
                 </div>
                 <button
-                    onClick={() => setIsFormOpen(true)}
-                    className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl hover:bg-primary/90 transition-all font-medium shadow-lg shadow-primary/20"
+                    onClick={() => { setEditingSupplier(null); setIsFormOpen(true) }}
+                    className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition-all font-semibold shadow-lg shadow-indigo-500/25 active:scale-95"
                 >
                     <Plus className="w-5 h-5" />
                     Nuevo Proveedor
                 </button>
             </div>
 
-            {/* SEARCH BAR */}
-            <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-md border border-gray-300 dark:border-gray-700">
-                <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+            {/* Stats Overview */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <StatCard
+                    label="Total Proveedores"
+                    value={totalSuppliers}
+                    icon={User}
+                    color="bg-blue-500"
+                />
+                <StatCard
+                    label="Productos Vinculados"
+                    value={totalProductsSourced}
+                    icon={Package}
+                    color="bg-purple-500"
+                />
+                <StatCard
+                    label="Proveedores Activos"
+                    value={totalSuppliers} // Placeholder logic
+                    icon={Globe}
+                    color="bg-green-500"
+                />
+                <StatCard
+                    label="Alertas Stock"
+                    value={0} // Placeholder
+                    icon={ShoppingBag}
+                    color="bg-orange-500"
+                />
+            </div>
+
+            {/* Toolbar */}
+            <div className="flex flex-col sm:flex-row gap-4 bg-white dark:bg-gray-800 p-2 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm">
+                <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                     <input
                         type="text"
-                        placeholder="Buscar por nombre, contacto, email o teléfono..."
+                        placeholder="Buscar por nombre, contacto, email..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                        className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-transparent border-none focus:ring-0 text-gray-900 dark:text-white placeholder-gray-400"
                     />
+                </div>
+                <div className="flex items-center gap-2 border-l border-gray-200 dark:border-gray-700 pl-4">
+                    <button
+                        onClick={() => setViewMode('grid')}
+                        className={cn(
+                            "p-2 rounded-lg transition-colors",
+                            viewMode === 'grid'
+                                ? "bg-gray-100 dark:bg-gray-700 text-indigo-600"
+                                : "text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                        )}
+                    >
+                        <LayoutGrid className="w-5 h-5" />
+                    </button>
+                    <button
+                        onClick={() => setViewMode('list')}
+                        className={cn(
+                            "p-2 rounded-lg transition-colors",
+                            viewMode === 'list'
+                                ? "bg-gray-100 dark:bg-gray-700 text-indigo-600"
+                                : "text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                        )}
+                    >
+                        <ListIcon className="w-5 h-5" />
+                    </button>
                 </div>
             </div>
 
-            {/* CONTENT */}
+            {/* Content Area */}
             <AnimatePresence mode="wait">
                 {loading ? (
-                    <div className="flex items-center justify-center h-64">
-                        <div className="flex flex-col items-center gap-4">
-                            <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
-                            <p className="text-gray-500 font-medium">Cargando proveedores...</p>
-                        </div>
-                    </div>
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="flex flex-col items-center justify-center h-64 gap-4"
+                    >
+                        <div className="w-10 h-10 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin" />
+                        <p className="text-gray-500">Cargando proveedores...</p>
+                    </motion.div>
                 ) : filteredSuppliers.length === 0 ? (
                     <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="text-center py-20"
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="text-center py-20 bg-gray-50 dark:bg-gray-800/50 rounded-3xl border border-dashed border-gray-300 dark:border-gray-700"
                     >
-                        <div className="w-20 h-20 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <Package className="w-10 h-10 text-gray-400" />
+                        <div className="w-20 h-20 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <User className="w-10 h-10 text-gray-400" />
                         </div>
-                        <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-                            No se encontraron proveedores
-                        </h3>
-                        <p className="text-gray-500 mt-2">
-                            {searchTerm ? 'Intenta con otra búsqueda' : 'Agrega tu primer proveedor'}
-                        </p>
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-white">Sin Resultados</h3>
+                        <p className="text-gray-500 mt-2">No se encontraron proveedores activos con ese criterio.</p>
                     </motion.div>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className={cn(
+                        "grid gap-4",
+                        viewMode === 'grid' ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" : "grid-cols-1"
+                    )}>
                         {filteredSuppliers.map((supplier) => (
                             <SupplierCard
                                 key={supplier.id}
                                 supplier={supplier}
-                                onEdit={() => handleEdit(supplier)}
+                                viewMode={viewMode}
+                                onEdit={() => { setEditingSupplier(supplier); setIsFormOpen(true) }}
                                 onDelete={() => handleDeleteClick(supplier.id!)}
+                                onViewProducts={() => setSelectedSupplierForProducts(supplier)}
                             />
                         ))}
                     </div>
@@ -147,16 +222,25 @@ export function Suppliers() {
                     onClose={() => {
                         setIsFormOpen(false)
                         setEditingSupplier(null)
-                        loadSuppliers()
+                        loadData()
                     }}
+                />
+            )}
+
+            {selectedSupplierForProducts && (
+                <ProductsListModal
+                    supplier={selectedSupplierForProducts}
+                    products={allProducts.filter(p => p.supplier_id === selectedSupplierForProducts.id)}
+                    currencySymbol={currencySymbol}
+                    onClose={() => setSelectedSupplierForProducts(null)}
                 />
             )}
 
             <ConfirmDialog
                 isOpen={confirmOpen}
                 title="¿Eliminar proveedor?"
-                description="Esta acción no se puede deshacer. El proveedor será eliminado permanentemente."
-                confirmText="Sí, eliminar"
+                description="Esta acción eliminará al proveedor, pero mantendrá los productos asociados (sin proveedor)."
+                confirmText="Eliminar Definitivamente"
                 variant="danger"
                 onConfirm={confirmDelete}
                 onCancel={() => setConfirmOpen(false)}
@@ -165,80 +249,211 @@ export function Suppliers() {
     )
 }
 
-function SupplierCard({ supplier, onEdit, onDelete }: { supplier: Supplier; onEdit: () => void; onDelete: () => void }) {
+interface StatCardProps {
+    label: string
+    value: string | number
+    icon: React.ElementType
+    color: string
+}
+
+function StatCard({ label, value, icon: Icon, color }: StatCardProps) {
+    return (
+        <div className="bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 flex items-center gap-4">
+            <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center shrink-0", color, "bg-opacity-10")}>
+                <Icon className={cn("w-6 h-6", color.replace('bg-', 'text-'))} />
+            </div>
+            <div>
+                <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">{label}</p>
+                <p className="text-2xl font-black text-gray-900 dark:text-white">{value}</p>
+            </div>
+        </div>
+    )
+}
+
+interface SupplierCardProps {
+    supplier: Supplier
+    viewMode: 'grid' | 'list'
+    onEdit: () => void
+    onDelete: () => void
+    onViewProducts: () => void
+}
+
+function SupplierCard({ supplier, viewMode, onEdit, onDelete, onViewProducts }: SupplierCardProps) {
+    // Diseño tipo "Business Card" moderno y compacto
     return (
         <motion.div
             layout
-            initial={{ opacity: 0, scale: 0.9 }}
+            initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="group relative bg-white dark:bg-gray-800 rounded-2xl border border-gray-300 dark:border-gray-700 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden"
+            className={cn(
+                "group bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col",
+                viewMode === 'list' ? "flex-row items-center p-3 gap-4" : "p-5"
+            )}
         >
-            {/* Header with gradient */}
-            <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-4">
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
-                            <Package className="w-6 h-6 text-white" />
-                        </div>
-                        <div>
-                            <h3 className="font-bold text-white text-lg line-clamp-1">{supplier.name}</h3>
-                            {supplier.contact_name && (
-                                <p className="text-white/80 text-sm flex items-center gap-1">
-                                    <User className="w-3 h-3" />
-                                    {supplier.contact_name}
-                                </p>
-                            )}
-                        </div>
+            <div className="flex items-start gap-4 w-full">
+                {/* Avatar Vibrante */}
+                <div className={cn(
+                    "shrink-0 rounded-2xl flex items-center justify-center text-white font-bold shadow-lg shadow-indigo-500/20",
+                    "bg-gradient-to-br from-indigo-500 to-purple-600",
+                    viewMode === 'list' ? "w-12 h-12 text-lg" : "w-16 h-16 text-3xl"
+                )}>
+                    {supplier.name ? supplier.name.charAt(0).toUpperCase() : <User className="w-6 h-6" />}
+                </div>
+
+                {/* Información Principal */}
+                <div className="flex-1 min-w-0 space-y-1">
+                    <div className="flex justify-between items-start">
+                        <h3 className="font-bold text-gray-900 dark:text-white text-lg truncate pr-2 leading-tight">
+                            {supplier.name}
+                        </h3>
+                        {/* Menú de acciones rápido (solo en grid para no saturar) */}
+                        {viewMode === 'grid' && (
+                            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity -mr-2 -mt-1">
+                                <button onClick={onEdit} className="p-1.5 text-gray-400 hover:text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg transition-colors">
+                                    <Edit2 className="w-4 h-4" />
+                                </button>
+                                <button onClick={onDelete} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors">
+                                    <Trash2 className="w-4 h-4" />
+                                </button>
+                            </div>
+                        )}
+                    </div>
+
+                    {supplier.contact && (
+                        <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1.5">
+                            <User className="w-3.5 h-3.5" />
+                            {supplier.contact}
+                        </p>
+                    )}
+
+                    {/* Datos de contacto compactos */}
+                    <div className="flex flex-wrap gap-y-1 gap-x-3 text-xs text-gray-500 pt-1">
+                        {supplier.phone && (
+                            <a href={`tel:${supplier.phone}`} className="flex items-center gap-1 hover:text-indigo-500 transition-colors">
+                                <Phone className="w-3 h-3" />
+                                {supplier.phone}
+                            </a>
+                        )}
+                        {supplier.email && (
+                            <a href={`mailto:${supplier.email}`} className="flex items-center gap-1 hover:text-indigo-500 transition-colors">
+                                <Mail className="w-3 h-3" />
+                                <span className="truncate max-w-[120px]">{supplier.email}</span>
+                            </a>
+                        )}
                     </div>
                 </div>
             </div>
 
-            {/* Content */}
-            <div className="p-4 space-y-3">
-                {supplier.email && (
-                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
-                        <Mail className="w-4 h-4 text-primary" />
-                        <span className="truncate">{supplier.email}</span>
-                    </div>
-                )}
-                {supplier.phone && (
-                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
-                        <Phone className="w-4 h-4 text-primary" />
-                        <span>{supplier.phone}</span>
-                    </div>
-                )}
-                {supplier.address && (
-                    <div className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-300">
-                        <MapPin className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                        <span className="line-clamp-2">{supplier.address}</span>
-                    </div>
-                )}
-                {supplier.notes && (
-                    <div className="pt-2 border-t border-gray-100 dark:border-gray-700">
-                        <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">
-                            {supplier.notes}
-                        </p>
-                    </div>
-                )}
-            </div>
+            {/* Parte inferior: Stats y Botón Productos */}
+            {viewMode === 'grid' && (
+                <div className="mt-5 pt-4 border-t border-gray-100 dark:border-gray-700/50 flex items-center justify-between">
+                    <button
+                        onClick={onViewProducts}
+                        className="group/btn flex items-center gap-2 px-3 py-1.5 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 rounded-lg text-xs font-bold hover:bg-indigo-100 dark:hover:bg-indigo-500/20 transition-all"
+                    >
+                        <Package className="w-3.5 h-3.5 transition-transform group-hover/btn:scale-110" />
+                        <span>Ver {supplier.products_count || 0} Productos</span>
+                    </button>
 
-            {/* Actions */}
-            <div className="px-4 pb-4 flex gap-2">
-                <button
-                    onClick={onEdit}
-                    className="flex-1 px-3 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors text-sm font-medium flex items-center justify-center gap-1"
-                >
-                    <Edit2 className="w-4 h-4" />
-                    Editar
-                </button>
-                <button
-                    onClick={onDelete}
-                    className="flex-1 px-3 py-2 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors text-sm font-medium flex items-center justify-center gap-1"
-                >
-                    <Trash2 className="w-4 h-4" />
-                    Eliminar
-                </button>
-            </div>
+                    {/* Botones de acción móvil o extra si se necesitan, pero ya están arriba */}
+                    <div className="text-xs text-gray-400 font-medium">
+                        {supplier.address ? 'Con dirección' : 'Sin dirección'}
+                    </div>
+                </div>
+            )}
+
+            {/* Acciones para modo lista */}
+            {viewMode === 'list' && (
+                <div className="flex items-center gap-2 ml-4 border-l border-gray-100 dark:border-gray-700 pl-4">
+                    <button
+                        onClick={onViewProducts}
+                        className="p-2 text-gray-400 hover:text-indigo-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+                        title="Ver Productos"
+                    >
+                        <Package className="w-4 h-4" />
+                    </button>
+                    <button onClick={onEdit} className="p-2 text-gray-400 hover:text-blue-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
+                        <Edit2 className="w-4 h-4" />
+                    </button>
+                    <button onClick={onDelete} className="p-2 text-gray-400 hover:text-red-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
+                        <Trash2 className="w-4 h-4" />
+                    </button>
+                </div>
+            )}
         </motion.div>
+    )
+}
+
+
+
+function ProductsListModal({ supplier, products, onClose, currencySymbol }: { supplier: Supplier, products: Product[], onClose: () => void, currencySymbol: string }) {
+    return createPortal(
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={onClose}
+                className="absolute inset-0 bg-black/20 backdrop-blur-sm"
+            />
+            <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="relative bg-white dark:bg-gray-800 rounded-3xl w-full max-w-2xl shadow-2xl border border-gray-100 dark:border-gray-700 overflow-hidden flex flex-col max-h-[85vh] z-10"
+            >
+                <div className="p-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-gray-50/50 dark:bg-gray-900/50">
+                    <div>
+                        <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                            <Package className="w-5 h-5 text-indigo-500" />
+                            Productos de {supplier.name}
+                        </h2>
+                        <p className="text-sm text-gray-500">{products.length} productos registrados</p>
+                    </div>
+                    <button onClick={onClose} className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors">
+                        <span className="text-2xl leading-none">&times;</span>
+                    </button>
+                </div>
+
+                <div className="flex-1 overflow-y-auto p-4 space-y-2">
+                    {products.length === 0 ? (
+                        <div className="text-center py-10 text-gray-500">
+                            Este proveedor no tiene productos asignados.
+                        </div>
+                    ) : (
+                        products.map(product => (
+                            <div key={product.id} className="flex items-center gap-4 p-3 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                                <div className="w-12 h-12 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center shrink-0 overflow-hidden">
+                                    {product.image ? (
+                                        <img src={getImageSrc(product.image)} className="w-full h-full object-cover" alt="" />
+                                    ) : (
+                                        <Package className="w-6 h-6 text-gray-400" />
+                                    )}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <h4 className="font-bold text-gray-900 dark:text-white truncate">{product.name}</h4>
+                                    <p className="text-xs text-gray-500">{product.code} • {product.category || 'Sin categoría'}</p>
+                                </div>
+                                <div className="text-right">
+                                    <div className="font-bold text-indigo-600 dark:text-indigo-400">
+                                        {currencySymbol}{product.price.toFixed(2)}
+                                    </div>
+                                    <div className={cn("text-xs font-medium", product.stock > product.min_stock ? "text-green-500" : "text-red-500")}>
+                                        {product.stock} {product.unit}s
+                                    </div>
+                                </div>
+                            </div>
+                        ))
+                    )}
+                </div>
+
+                <div className="p-4 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 text-center">
+                    <button onClick={onClose} className="px-6 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl font-medium hover:bg-gray-50 transition-colors shadow-sm">
+                        Cerrar
+                    </button>
+                </div>
+            </motion.div>
+        </div>,
+        document.body
     )
 }

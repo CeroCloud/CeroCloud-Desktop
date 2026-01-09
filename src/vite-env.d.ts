@@ -57,6 +57,15 @@ interface ElectronAPI {
         clearAll: () => Promise<{ success: boolean; error?: string }>
         restore: (data: any) => Promise<{ success: boolean; error?: string }>
     }
+    inventoryLogs: {
+        getAll: () => Promise<any[]>
+        getByProductId: (productId: number) => Promise<any[]>
+        getByMovementType: (type: string) => Promise<any[]>
+        getByDateRange: (startDate: string, endDate: string) => Promise<any[]>
+        getRecent: (limit: number) => Promise<any[]>
+        create: (log: any) => Promise<any>
+        count: () => Promise<number>
+    }
     backup: {
         create: (password?: string) => Promise<{ path: string; filename: string; encrypted: boolean }>
         createZip: (password?: string) => Promise<{ buffer: Uint8Array; filename: string; encrypted: boolean }>

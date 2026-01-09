@@ -11,6 +11,7 @@ export const productSchema = z.object({
     stock: z.coerce.number().int().min(0, 'El stock no puede ser negativo'),
     min_stock: z.coerce.number().int().min(0, 'El stock mínimo no puede ser negativo').default(0),
     unit: z.enum(['unidad', 'kg', 'g', 'l', 'ml', 'm', 'caja', 'paquete']).default('unidad'),
+    supplier_id: z.coerce.number().optional(),
 })
 
 export type ProductFormValues = z.infer<typeof productSchema>

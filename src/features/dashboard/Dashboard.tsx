@@ -135,10 +135,10 @@ export function Dashboard() {
     return (
         <div className="space-y-8 pb-8">
             {/* HERO SECTION - Redesigned Premium Dark Theme */}
-            <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 rounded-3xl shadow-2xl border border-slate-800/50 group">
+            <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 rounded-3xl shadow-2xl border border-slate-800/50 group transition-shadow duration-500 hover:shadow-indigo-500/10">
                 {/* Background Effects */}
-                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-indigo-500/20 rounded-full blur-[120px] mix-blend-screen opacity-50 pointer-events-none transform translate-x-1/2 -translate-y-1/2" />
-                <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-purple-500/10 rounded-full blur-[100px] mix-blend-screen opacity-30 pointer-events-none transform -translate-x-1/2 translate-y-1/2" />
+                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-indigo-500/20 rounded-full blur-[120px] mix-blend-screen opacity-50 pointer-events-none transform translate-x-1/2 -translate-y-1/2 group-hover:opacity-60 transition-opacity duration-700" />
+                <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-purple-500/10 rounded-full blur-[100px] mix-blend-screen opacity-30 pointer-events-none transform -translate-x-1/2 translate-y-1/2 group-hover:opacity-40 transition-opacity duration-700" />
 
                 <div className="relative z-10 p-6 md:p-8 flex justify-between items-center">
                     <motion.div
@@ -195,7 +195,7 @@ export function Dashboard() {
             </div>
 
             {/* KPI CARDS - Clean & Neutral */}
-            < div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" >
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                 <KPICard
                     title="Ingresos Totales"
                     value={`${settings.currencySymbol}${totalRevenue.toLocaleString('es-MX', { minimumFractionDigits: 2 })}`}
@@ -424,9 +424,9 @@ function KPICard({ title, value, icon: Icon, trend, trendValue, color }: any) {
     }
 
     return (
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-300 dark:border-gray-700 shadow-md hover:shadow-lg transition-shadow">
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-300 dark:border-gray-700 shadow-md hover:shadow-xl hover:border-gray-400 dark:hover:border-gray-600 transition-all duration-300 hover:-translate-y-0.5 group">
             <div className="flex items-start justify-between mb-4">
-                <div className={cn("p-3 rounded-lg", colorStyles[color as keyof typeof colorStyles] || colorStyles.blue)}>
+                <div className={cn("p-3 rounded-lg transition-transform duration-300 group-hover:scale-110", colorStyles[color as keyof typeof colorStyles] || colorStyles.blue)}>
                     <Icon className="w-6 h-6" />
                 </div>
                 {trend !== "Neutral" && (

@@ -2,13 +2,15 @@
 // @ts-nocheck
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import { toast } from 'sonner'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Code, Heart, Github, Globe, Facebook, Twitter, Shield, FileText, Mail, X as XIcon, Zap, Sparkles } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import pkg from '../../../package.json'
 
 export function About() {
-    const version = '1.0.1'
+    const version = pkg.version
     const [activeModal, setActiveModal] = useState<'license' | 'support' | 'privacy' | null>(null)
 
     const developers = [
@@ -35,13 +37,13 @@ export function About() {
         }
     }
 
-    const Modal = ({ title, content, onClose }: { title: string, content: React.ReactNode, onClose: () => void }) => (
+    const Modal = ({ title, content, onClose }: { title: string, content: React.ReactNode, onClose: () => void }) => createPortal(
         <AnimatePresence>
             <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md"
+                className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/20 backdrop-blur-sm"
                 onClick={onClose}
             >
                 <motion.div
@@ -71,7 +73,8 @@ export function About() {
                     </div>
                 </motion.div>
             </motion.div>
-        </AnimatePresence>
+        </AnimatePresence>,
+        document.body
     )
 
     return (

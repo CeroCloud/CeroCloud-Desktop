@@ -1,5 +1,6 @@
 
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Calendar, DollarSign, ShoppingBag, Loader2, Package, Search } from 'lucide-react'
 import { cn, formatCurrency } from '@/lib/utils'
@@ -43,7 +44,7 @@ export function ClientHistoryModal({ isOpen, onClose, client }: ClientHistoryMod
         s.items.some(i => i.product_name.toLowerCase().includes(searchTerm.toLowerCase()))
     )
 
-    return (
+    return createPortal(
         <AnimatePresence>
             {isOpen && client && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
@@ -52,7 +53,7 @@ export function ClientHistoryModal({ isOpen, onClose, client }: ClientHistoryMod
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={onClose}
-                        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+                        className="absolute inset-0 bg-black/20 backdrop-blur-sm"
                     />
 
                     <motion.div
@@ -197,6 +198,7 @@ export function ClientHistoryModal({ isOpen, onClose, client }: ClientHistoryMod
                     </motion.div>
                 </div>
             )}
-        </AnimatePresence>
+        </AnimatePresence>,
+        document.body
     )
 }

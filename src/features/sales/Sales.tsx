@@ -27,6 +27,7 @@ import { cn, getImageSrc } from '@/lib/utils'
 import { useCartStore } from '@/stores/cartStore'
 import { useNotificationStore } from '@/stores/notificationStore'
 import { clientService, type Client } from '@/services/clientService'
+import { LazyImage } from '@/components/ui/LazyImage'
 
 export function Sales() {
     // Data State
@@ -195,8 +196,10 @@ export function Sales() {
     // Filter Logic
     const filteredProducts = useMemo(() => {
         return products.filter(p => {
-            const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                p.code.toLowerCase().includes(searchTerm.toLowerCase())
+            const term = searchTerm.toLowerCase()
+            const matchesSearch = p.name.toLowerCase().includes(term) ||
+                p.code.toString().toLowerCase().includes(term) ||
+                (p.category && p.category.toLowerCase().includes(term))
             const matchesCategory = selectedCategory === 'all' || p.category === selectedCategory
             return matchesSearch && matchesCategory
         })
@@ -345,7 +348,7 @@ export function Sales() {
                         <input
                             ref={searchInputRef}
                             type="text"
-                            placeholder="Buscar producto... (F2)"
+                            placeholder="Buscar por nombre, código o categoría... (F2)"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="w-full pl-12 pr-4 py-3 text-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white border-none rounded-xl focus:ring-2 focus:ring-primary shadow-inner placeholder:text-gray-400"
@@ -770,17 +773,18 @@ function ProductCard({ product, settings, onClick }: { product: Product; setting
             className="group bg-white dark:bg-gray-800 p-3 rounded-xl border border-gray-300 dark:border-gray-700 shadow-md hover:shadow-lg hover:border-primary/50 cursor-pointer transition-all flex flex-col h-full"
         >
             <div className="aspect-square bg-gray-100 dark:bg-gray-700 rounded-lg mb-3 overflow-hidden relative">
-                <img
+                <LazyImage
                     src={getImageSrc(product.image) || ""}
                     alt={product.name}
-                    className={cn("w-full h-full object-cover", !product.image && "hidden")}
+                    aspectRatio="aspect-square"
+                    className="w-full h-full object-cover"
+                    fallback={
+                        <div className="w-full h-full flex items-center justify-center text-gray-300">
+                            <Package className="w-8 h-8" />
+                        </div>
+                    }
                 />
-                {!product.image && (
-                    <div className="w-full h-full flex items-center justify-center text-gray-300">
-                        <Package className="w-8 h-8" />
-                    </div>
-                )}
-                <div className="absolute top-2 right-2 bg-black/60 text-white text-[10px] font-bold px-1.5 py-0.5 rounded backdrop-blur-md">
+                <div className="absolute top-2 right-2 bg-black/60 text-white text-[10px] font-bold px-1.5 py-0.5 rounded backdrop-blur-md z-20">
                     {product.stock}
                 </div>
             </div>

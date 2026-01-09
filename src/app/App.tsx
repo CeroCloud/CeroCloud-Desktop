@@ -1,6 +1,6 @@
 import { HashRouter as Router } from 'react-router-dom'
 import { AppRoutes } from './routes'
-import { Toaster } from 'sonner'
+import { Toaster, toast } from 'sonner'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { CommandPalette } from '@/components/command/CommandPalette'
 
@@ -8,10 +8,26 @@ const queryClient = new QueryClient()
 
 import { useEffect } from 'react'
 import { companyService } from '@/services/companyService'
+import { backupService } from '@/services/backupService'
 
 export function App() {
     useEffect(() => {
         companyService.initTheme()
+
+        // Check for Auto Backup
+        const checkBackup = async () => {
+            if (backupService.shouldAutoBackup()) {
+                toast.info('Iniciando respaldo automático...')
+                const result = await backupService.performAutoBackup()
+                if (result.success) {
+                    toast.success('Respaldo automático generado correctamente')
+                } else {
+                    toast.error('Error al generar respaldo automático')
+                }
+            }
+        }
+
+        checkBackup()
     }, [])
 
     return (

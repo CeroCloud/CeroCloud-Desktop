@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import {
     Download,
     TrendingUp,
@@ -10,7 +10,11 @@ import {
     Calendar,
     AlertCircle,
     Activity,
-    X
+    X,
+    AlertTriangle,
+    CheckCircle2,
+    ArrowUpDown,
+    Search
 } from 'lucide-react'
 import {
     AreaChart,
@@ -34,7 +38,7 @@ import { Product, Sale } from '@/types/database'
 import { format, subDays, startOfDay } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { motion, AnimatePresence } from 'framer-motion'
-import { cn } from '@/lib/utils'
+import { cn, getImageSrc } from '@/lib/utils'
 import { toast } from 'sonner'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 
@@ -47,6 +51,62 @@ export function Reports() {
 
     // UI States
     const [saleToCancel, setSaleToCancel] = useState<Sale | null>(null)
+    const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null)
+    const [searchTerm, setSearchTerm] = useState('')
+
+    const sortedSales = useMemo(() => {
+        let sortableSales = [...sales]
+
+        // Filter by Search Term
+        if (searchTerm.trim()) {
+            const lowerTerm = searchTerm.toLowerCase()
+            sortableSales = sortableSales.filter(s =>
+                s.id?.toString().includes(lowerTerm) ||
+                (s.customer_name || 'Público General').toLowerCase().includes(lowerTerm) ||
+                s.status?.toLowerCase().includes(lowerTerm)
+            )
+        }
+
+        if (sortConfig !== null) {
+            sortableSales.sort((a: Sale, b: Sale) => {
+                let aValue = a[sortConfig.key]
+                let bValue = b[sortConfig.key]
+
+                if (sortConfig.key === 'customer_name') {
+                    aValue = a.customer_name || 'Público General'
+                    bValue = b.customer_name || 'Público General'
+                }
+                if (sortConfig.key === 'created_at') {
+                    aValue = new Date(a.created_at || 0).getTime()
+                    bValue = new Date(b.created_at || 0).getTime()
+                }
+                if (sortConfig.key === 'total') {
+                    aValue = a.total
+                    bValue = b.total
+                }
+
+                if (aValue < bValue) {
+                    return sortConfig.direction === 'asc' ? -1 : 1
+                }
+                if (aValue > bValue) {
+                    return sortConfig.direction === 'asc' ? 1 : -1
+                }
+                return 0
+            })
+        } else {
+            // Default sort by date desc
+            sortableSales.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime())
+        }
+        return sortableSales
+    }, [sales, sortConfig, searchTerm])
+
+    const requestSort = (key: string) => {
+        let direction: 'asc' | 'desc' = 'asc'
+        if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
+            direction = 'desc'
+        }
+        setSortConfig({ key, direction })
+    }
 
     useEffect(() => {
         loadData()
@@ -116,6 +176,68 @@ export function Reports() {
         }
     })
 
+    // --- PROFIT ANALYSIS ---
+    // Calcular Costo de Productos Vendidos (COGS) y Utilidad Bruta
+    let totalCost = 0
+    let totalRevenue = 0
+    const productProfitability: Map<number, {
+        product: Product
+        revenue: number
+        cost: number
+        profit: number
+        margin: number
+        quantity: number
+    }> = new Map()
+
+    sales.forEach(sale => {
+        if (sale.status === 'cancelled') return
+
+        sale.items.forEach(item => {
+            const product = products.find(p => p.id === item.product_id)
+            const itemRevenue = item.subtotal
+            const itemCost = (product?.cost || 0) * item.quantity
+            const itemProfit = itemRevenue - itemCost
+
+            totalRevenue += itemRevenue
+            totalCost += itemCost
+
+            // Agregar a análisis por producto
+            if (product) {
+                const existing = productProfitability.get(item.product_id) || {
+                    product,
+                    revenue: 0,
+                    cost: 0,
+                    profit: 0,
+                    margin: 0,
+                    quantity: 0
+                }
+
+                existing.revenue += itemRevenue
+                existing.cost += itemCost
+                existing.profit += itemProfit
+                existing.quantity += item.quantity
+                existing.margin = existing.revenue > 0 ? (existing.profit / existing.revenue) * 100 : 0
+
+                productProfitability.set(item.product_id, existing)
+            }
+        })
+    })
+
+    const grossProfit = totalRevenue - totalCost
+    const profitMargin = totalRevenue > 0 ? (grossProfit / totalRevenue) * 100 : 0
+
+    // Top productos por rentabilidad (mejores márgenes)
+    const topProfitableProducts = Array.from(productProfitability.values())
+        .filter(item => item.quantity > 0)
+        .sort((a, b) => b.profit - a.profit)
+        .slice(0, 10)
+
+    // Productos con bajo margen (alerta)
+    const lowMarginProducts = Array.from(productProfitability.values())
+        .filter(item => item.quantity > 0 && item.margin < 20) // Menos del 20% de margen
+        .sort((a, b) => a.margin - b.margin)
+        .slice(0, 10)
+
     // --- HANDLERS ---
 
     const handleCancelSale = async () => {
@@ -150,14 +272,7 @@ export function Reports() {
         })
     })
 
-    const topProducts = Array.from(productRevenue.values())
-        .sort((a, b) => b.revenue - a.revenue)
-        .slice(0, 5)
-        .map(item => ({
-            name: item.product.name.length > 15 ? item.product.name.substring(0, 15) + '...' : item.product.name,
-            ventas: item.revenue,
-            cantidad: item.quantity
-        }))
+
 
     const COLORS = ['#3b82f6', '#14b8a6', '#f59e0b', '#ef4444', '#8b5cf6']
 
@@ -193,7 +308,7 @@ export function Reports() {
                     {tabs.map((tab) => (
                         <button
                             key={tab.id}
-                            onClick={() => setActiveTab(tab.id as any)}
+                            onClick={() => setActiveTab(tab.id as 'sales' | 'inventory' | 'transactions' | 'export')}
                             className={cn(
                                 "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap",
                                 activeTab === tab.id
@@ -243,6 +358,58 @@ export function Reports() {
                                 />
                             </div>
 
+                            {/* Profit Analysis Section */}
+                            <div className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-2xl p-6 border border-emerald-200 dark:border-emerald-800">
+                                <div className="flex items-center gap-3 mb-6">
+                                    <div className="p-3 bg-emerald-500 rounded-xl">
+                                        <TrendingUp className="w-6 h-6 text-white" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-lg font-bold text-gray-900 dark:text-white">Análisis de Rentabilidad</h3>
+                                        <p className="text-sm text-gray-600 dark:text-gray-400">Utilidad bruta y márgenes</p>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                    <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+                                        <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-1">Ingresos</p>
+                                        <p className="text-2xl font-black text-gray-900 dark:text-white">
+                                            {settings.currencySymbol}{totalRevenue.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+                                        </p>
+                                        <p className="text-xs text-gray-500 mt-1">Ventas totales</p>
+                                    </div>
+
+                                    <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+                                        <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-1">Costo</p>
+                                        <p className="text-2xl font-black text-red-600 dark:text-red-400">
+                                            {settings.currencySymbol}{totalCost.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+                                        </p>
+                                        <p className="text-xs text-gray-500 mt-1">Productos vendidos</p>
+                                    </div>
+
+                                    <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-emerald-500 dark:border-emerald-600 ring-2 ring-emerald-500/20">
+                                        <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 uppercase mb-1">Utilidad Bruta</p>
+                                        <p className="text-2xl font-black text-emerald-600 dark:text-emerald-400">
+                                            {settings.currencySymbol}{grossProfit.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+                                        </p>
+                                        <p className="text-xs text-gray-500 mt-1">Ganancia neta</p>
+                                    </div>
+
+                                    <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+                                        <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-1">Margen</p>
+                                        <p className={cn(
+                                            "text-2xl font-black",
+                                            profitMargin >= 30 ? "text-green-600 dark:text-green-400" :
+                                                profitMargin >= 15 ? "text-amber-600 dark:text-amber-400" :
+                                                    "text-red-600 dark:text-red-400"
+                                        )}>
+                                            {profitMargin.toFixed(1)}%
+                                        </p>
+                                        <p className="text-xs text-gray-500 mt-1">% de ganancia</p>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                                 <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-md border border-gray-300 dark:border-gray-700">
                                     <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6">Tendencia (7 días)</h3>
@@ -250,15 +417,54 @@ export function Reports() {
                                         <AreaChart data={last7Days}>
                                             <defs>
                                                 <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
-                                                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.1} />
-                                                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                                                    <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3} />
+                                                    <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
+                                                </linearGradient>
+                                                <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
+                                                    <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.3} />
+                                                    <stop offset="95%" stopColor="#06b6d4" stopOpacity={0} />
                                                 </linearGradient>
                                             </defs>
-                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
-                                            <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fill: '#6B7280', fontSize: 12 }} dy={10} />
-                                            <YAxis axisLine={false} tickLine={false} tick={{ fill: '#6B7280', fontSize: 12 }} tickFormatter={(value) => `${settings.currencySymbol}${value}`} />
-                                            <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
-                                            <Area type="monotone" dataKey="ventas" stroke="#3b82f6" strokeWidth={2} fillOpacity={1} fill="url(#colorSales)" />
+                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#374151" strokeOpacity={0.2} />
+                                            <XAxis
+                                                dataKey="date"
+                                                axisLine={false}
+                                                tickLine={false}
+                                                tick={{ fill: '#9ca3af', fontSize: 12 }}
+                                                dy={10}
+                                            />
+                                            <YAxis
+                                                axisLine={false}
+                                                tickLine={false}
+                                                tick={{ fill: '#9ca3af', fontSize: 12 }}
+                                                tickFormatter={(value) => `${settings.currencySymbol}${value}`}
+                                                dx={-10}
+                                            />
+                                            <Tooltip
+                                                contentStyle={{
+                                                    backgroundColor: 'rgba(17, 24, 39, 0.9)',
+                                                    backdropFilter: 'blur(8px)',
+                                                    border: '1px solid rgba(75, 85, 99, 0.4)',
+                                                    borderRadius: '12px',
+                                                    boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
+                                                    color: '#fff'
+                                                }}
+                                                itemStyle={{ color: '#e5e7eb' }}
+                                                labelStyle={{ color: '#9ca3af', marginBottom: '0.5rem', fontSize: '0.875rem' }}
+                                                formatter={(value: number, name: string) => [
+                                                    name === 'ventas' ? `${settings.currencySymbol}${Number(value).toLocaleString()}` : value,
+                                                    name === 'ventas' ? 'Ventas' : 'Transacciones'
+                                                ]}
+                                            />
+                                            <Area
+                                                type="monotone"
+                                                dataKey="ventas"
+                                                stroke="#8b5cf6"
+                                                strokeWidth={3}
+                                                fillOpacity={1}
+                                                fill="url(#colorSales)"
+                                                activeDot={{ r: 6, strokeWidth: 0, fill: '#fff' }}
+                                            />
                                         </AreaChart>
                                     </ResponsiveContainer>
                                 </div>
@@ -267,75 +473,178 @@ export function Reports() {
                                     <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6">Horas Pico de Actividad</h3>
                                     <ResponsiveContainer width="100%" height={300}>
                                         <BarChart data={hourlyTraffic} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
+                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#374151" strokeOpacity={0.2} />
                                             <XAxis
                                                 dataKey="hour"
                                                 axisLine={false}
                                                 tickLine={false}
-                                                tick={{ fill: '#6B7280', fontSize: 11 }}
+                                                tick={{ fill: '#9ca3af', fontSize: 11 }}
+                                                dy={10}
                                             />
                                             <YAxis
                                                 axisLine={false}
                                                 tickLine={false}
-                                                tick={{ fill: '#6B7280', fontSize: 11 }}
+                                                tick={{ fill: '#9ca3af', fontSize: 11 }}
                                                 tickFormatter={(value) => `${settings.currencySymbol}${value}`}
+                                                dx={-10}
                                             />
                                             <Tooltip
-                                                cursor={{ fill: 'rgba(0,0,0,0.05)' }}
-                                                contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                                                formatter={(value: any, name: string | number | undefined) => [
+                                                cursor={{ fill: 'rgba(139, 92, 246, 0.1)', radius: 4 }}
+                                                contentStyle={{
+                                                    backgroundColor: 'rgba(17, 24, 39, 0.9)',
+                                                    backdropFilter: 'blur(8px)',
+                                                    border: '1px solid rgba(75, 85, 99, 0.4)',
+                                                    borderRadius: '12px',
+                                                    boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
+                                                    color: '#fff'
+                                                }}
+                                                itemStyle={{ color: '#e5e7eb' }}
+                                                labelStyle={{ color: '#9ca3af', marginBottom: '0.5rem', fontSize: '0.875rem' }}
+                                                formatter={(value: number, name: string) => [
                                                     name === 'sales' ? `${settings.currencySymbol}${Number(value).toLocaleString()}` : value,
-                                                    name === 'sales' ? 'Ventas Generadas' : 'Transacciones'
+                                                    name === 'sales' ? 'Ventas' : 'Transacciones'
                                                 ]}
                                             />
                                             <Bar
                                                 dataKey="sales"
-                                                fill="#8b5cf6"
-                                                radius={[4, 4, 0, 0]}
-                                                barSize={20}
+                                                fill="#6366f1"
+                                                radius={[6, 6, 0, 0]}
+                                                barSize={32}
+                                                activeBar={{ fill: '#8b5cf6' }}
                                             />
                                         </BarChart>
                                     </ResponsiveContainer>
                                 </div>
                             </div>
 
-                            {/* Top Products Section */}
-                            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-md border border-gray-300 dark:border-gray-700 mt-6">
-                                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6">Top 5 Productos Más Vendidos</h3>
-                                <div className="space-y-5">
-                                    {topProducts.map((product, index) => (
-                                        <div key={index} className="relative">
-                                            <div className="flex justify-between items-end mb-1">
-                                                <span className="text-sm font-medium text-gray-700 dark:text-gray-200 truncate max-w-[200px]">
-                                                    {index + 1}. {product.name}
-                                                </span>
-                                                <div className="text-right flex items-center gap-3">
-                                                    <span className="text-xs font-bold text-gray-500 bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded-md">
-                                                        {product.cantidad} un.
-                                                    </span>
-                                                    <span className="text-sm font-bold text-gray-900 dark:text-white">
-                                                        {settings.currencySymbol}{product.ventas.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+                            {/* Profitability Analysis Tables */}
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                {/* Most Profitable Products */}
+                                <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-md border border-gray-300 dark:border-gray-700">
+                                    <div className="flex items-center justify-between mb-6">
+                                        <h3 className="text-lg font-bold text-gray-900 dark:text-white">Productos Más Rentables</h3>
+                                        <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                                            <TrendingUp className="w-5 h-5 text-green-600 dark:text-green-400" />
+                                        </div>
+                                    </div>
+                                    <div className="space-y-3 max-h-[400px] overflow-y-auto">
+                                        {topProfitableProducts.map((item, index) => (
+                                            <div key={item.product.id} className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+                                                <div className="flex items-start justify-between mb-2">
+                                                    <div className="flex-1">
+                                                        <div className="flex items-center gap-2">
+                                                            <span className={cn(
+                                                                "flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold",
+                                                                index === 0 ? "bg-yellow-400 text-yellow-900" :
+                                                                    index === 1 ? "bg-gray-300 text-gray-700" :
+                                                                        index === 2 ? "bg-amber-600 text-white" :
+                                                                            "bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200"
+                                                            )}>
+                                                                {index + 1}
+                                                            </span>
+                                                            <p className="font-bold text-gray-900 dark:text-white text-sm line-clamp-1">
+                                                                {item.product.name}
+                                                            </p>
+                                                        </div>
+                                                        <p className="text-xs text-gray-500 font-mono mt-1">{item.product.code}</p>
+                                                    </div>
+                                                    <div className="text-right ml-2">
+                                                        <p className="text-sm font-black text-green-600 dark:text-green-400">
+                                                            {settings.currencySymbol}{item.profit.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+                                                        </p>
+                                                        <p className="text-xs text-gray-500">{item.quantity} vendidos</p>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center justify-between text-xs mt-2 pt-2 border-t border-gray-200 dark:border-gray-600">
+                                                    <span className="text-gray-500">Margen:</span>
+                                                    <span className={cn(
+                                                        "font-bold",
+                                                        item.margin >= 40 ? "text-green-600" :
+                                                            item.margin >= 20 ? "text-blue-600" :
+                                                                "text-amber-600"
+                                                    )}>
+                                                        {item.margin.toFixed(1)}%
                                                     </span>
                                                 </div>
                                             </div>
-                                            <div className="w-full h-2.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
-                                                <div
-                                                    className="h-full rounded-full transition-all duration-500 ease-out"
-                                                    style={{
-                                                        width: `${(product.ventas / (topProducts[0]?.ventas || 1)) * 100}%`,
-                                                        backgroundColor: COLORS[index % COLORS.length]
-                                                    }}
-                                                />
+                                        ))}
+                                        {topProfitableProducts.length === 0 && (
+                                            <div className="text-center py-10 text-gray-400 text-sm">
+                                                No hay datos suficientes aún.
                                             </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Low Margin Products - Warning */}
+                                <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-md border border-amber-300 dark:border-amber-700">
+                                    <div className="flex items-center justify-between mb-6">
+                                        <h3 className="text-lg font-bold text-gray-900 dark:text-white">Productos de Bajo Margen</h3>
+                                        <div className="p-2 bg-amber-100 dark:bg-amber-900/30 rounded-lg">
+                                            <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400" />
                                         </div>
-                                    ))}
-                                    {topProducts.length === 0 && (
-                                        <div className="text-center py-10 text-gray-400 text-sm">
-                                            No hay suficientes datos de ventas aún.
-                                        </div>
-                                    )}
+                                    </div>
+                                    <div className="flex items-start gap-3 p-3 mb-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300">
+                                        <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
+                                        <p className="text-xs font-medium leading-relaxed">
+                                            Productos con margen de ganancia inferior al 20%. Se recomienda revisar la estructura de costos o ajustar precios de venta.
+                                        </p>
+                                    </div>
+                                    <div className="space-y-3 max-h-[350px] overflow-y-auto">
+                                        {lowMarginProducts.map((item) => (
+                                            <div key={item.product.id} className="p-4 bg-amber-50 dark:bg-amber-900/10 rounded-xl border border-amber-200 dark:border-amber-800/50">
+                                                <div className="flex items-start justify-between mb-2">
+                                                    <div className="flex-1">
+                                                        <p className="font-bold text-gray-900 dark:text-white text-sm line-clamp-1">
+                                                            {item.product.name}
+                                                        </p>
+                                                        <p className="text-xs text-gray-500 font-mono">{item.product.code}</p>
+                                                    </div>
+                                                    <div className="text-right ml-2">
+                                                        <p className={cn(
+                                                            "text-sm font-black",
+                                                            item.margin < 10 ? "text-red-600 dark:text-red-400" : "text-amber-600 dark:text-amber-400"
+                                                        )}>
+                                                            {item.margin.toFixed(1)}%
+                                                        </p>
+                                                        <p className="text-xs text-gray-500">margen</p>
+                                                    </div>
+                                                </div>
+                                                <div className="grid grid-cols-3 gap-2 mt-2 pt-2 border-t border-amber-200 dark:border-amber-800/50 text-xs">
+                                                    <div>
+                                                        <p className="text-gray-500">Venta</p>
+                                                        <p className="font-semibold text-gray-900 dark:text-white">
+                                                            {settings.currencySymbol}{item.revenue.toFixed(2)}
+                                                        </p>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-gray-500">Costo</p>
+                                                        <p className="font-semibold text-red-600 dark:text-red-400">
+                                                            {settings.currencySymbol}{item.cost.toFixed(2)}
+                                                        </p>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-gray-500">Ganancia</p>
+                                                        <p className="font-semibold text-green-600 dark:text-green-400">
+                                                            {settings.currencySymbol}{item.profit.toFixed(2)}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                        {lowMarginProducts.length === 0 && (
+                                            <div className="text-center py-10 text-green-600 dark:text-green-400">
+                                                <CheckCircle2 className="w-12 h-12 mx-auto mb-2" />
+                                                <p className="text-sm font-medium">¡Excelente!</p>
+                                                <p className="text-xs text-gray-500 mt-1">Todos los productos tienen buenos márgenes.</p>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
+
+                            {/* Top Products Section */}
+
                         </div>
                     )}
 
@@ -369,45 +678,84 @@ export function Reports() {
                             {/* Inventory Analysis Row */}
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                                 {/* Category Value Chart */}
-                                <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-md border border-gray-300 dark:border-gray-700 flex flex-col justify-between">
-                                    <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Valor por Categoría</h3>
-                                    <div className="h-[280px] w-full relative">
-                                        <ResponsiveContainer width="100%" height="100%">
-                                            <PieChart>
-                                                <Pie
-                                                    data={Object.entries(products.reduce((acc, p) => {
-                                                        const cat = p.category || 'Sin Categoría'
-                                                        acc[cat] = (acc[cat] || 0) + (p.price * p.stock)
-                                                        return acc
-                                                    }, {} as Record<string, number>))
-                                                        .map(([name, value]) => ({ name, value }))
-                                                        .sort((a, b) => b.value - a.value)}
-                                                    cx="50%"
-                                                    cy="50%"
-                                                    innerRadius={60}
-                                                    outerRadius={85} // Reduced from 100 to prevent legend overlap
-                                                    paddingAngle={5}
-                                                    dataKey="value"
-                                                >
-                                                    {products.map((_, index) => (
-                                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                                    ))}
-                                                </Pie>
-                                                <Tooltip formatter={(value: any) => `${settings.currencySymbol}${value.toLocaleString()}`} />
-                                            </PieChart>
-                                        </ResponsiveContainer>
-                                        {/* Legend positioned inside chart area but safe */}
-                                        <div className="absolute bottom-0 left-0 right-0 flex flex-wrap justify-center gap-3 pb-2">
-                                            {Object.keys(products.reduce((acc, p) => {
+                                <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-md border border-gray-300 dark:border-gray-700 flex flex-col">
+                                    <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6">Valor de Inventario por Categoría</h3>
+                                    <div className="flex flex-col md:flex-row items-center justify-center gap-8 h-full">
+                                        <div className="h-[260px] w-[260px] relative shrink-0">
+                                            <ResponsiveContainer width="100%" height="100%">
+                                                <PieChart>
+                                                    <Pie
+                                                        data={Object.entries(products.reduce((acc, p) => {
+                                                            const cat = p.category || 'Sin Categoría'
+                                                            acc[cat] = (acc[cat] || 0) + (p.price * p.stock)
+                                                            return acc
+                                                        }, {} as Record<string, number>))
+                                                            .map(([name, value]) => ({ name, value }))
+                                                            .sort((a, b) => b.value - a.value)}
+                                                        cx="50%"
+                                                        cy="50%"
+                                                        innerRadius={80}
+                                                        outerRadius={105}
+                                                        paddingAngle={4}
+                                                        dataKey="value"
+                                                        cornerRadius={6}
+                                                        stroke="none"
+                                                    >
+                                                        {products.map((_, index) => (
+                                                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                                        ))}
+                                                    </Pie>
+                                                    <Tooltip
+                                                        cursor={{ fill: 'none' }}
+                                                        contentStyle={{
+                                                            backgroundColor: 'rgba(17, 24, 39, 0.95)',
+                                                            backdropFilter: 'blur(8px)',
+                                                            border: 'none',
+                                                            borderRadius: '12px',
+                                                            boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3)',
+                                                            color: '#fff',
+                                                            padding: '12px'
+                                                        }}
+                                                        formatter={(value: number) => [`${settings.currencySymbol}${value.toLocaleString()}`, 'Valor Total']}
+                                                        itemStyle={{ color: '#fff', fontWeight: 600 }}
+                                                    />
+                                                </PieChart>
+                                            </ResponsiveContainer>
+                                            {/* Centered Total Label */}
+                                            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                                                <span className="text-gray-400 text-xs font-medium uppercase tracking-wider">Total</span>
+                                                <span className="text-2xl font-black text-gray-900 dark:text-white mt-1">
+                                                    {settings.currencySymbol}{(inventoryValue / 1000).toFixed(1)}k
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        {/* Detailed Side Legend */}
+                                        <div className="flex flex-col gap-3 w-full md:w-auto overflow-y-auto max-h-[260px] pr-2">
+                                            {Object.entries(products.reduce((acc, p) => {
                                                 const cat = p.category || 'Sin Categoría'
-                                                acc[cat] = true
+                                                acc[cat] = (acc[cat] || 0) + (p.price * p.stock)
                                                 return acc
-                                            }, {} as Record<string, boolean>)).slice(0, 5).map((cat, index) => (
-                                                <div key={cat} className="flex items-center gap-1.5 bg-gray-50 dark:bg-gray-700/50 px-2 py-1 rounded-full border border-gray-100 dark:border-gray-700">
-                                                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
-                                                    <span className="text-[10px] font-medium text-gray-600 dark:text-gray-300 truncate max-w-[100px]">{cat}</span>
-                                                </div>
-                                            ))}
+                                            }, {} as Record<string, number>))
+                                                .sort(([, a], [, b]) => b - a)
+                                                .map(([name, value], index) => (
+                                                    <div key={name} className="flex items-center justify-between gap-6 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors group">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="w-3 h-3 rounded-full shrink-0 shadow-sm" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
+                                                            <span className="text-sm font-medium text-gray-600 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white transition-colors truncate max-w-[120px]">
+                                                                {name}
+                                                            </span>
+                                                        </div>
+                                                        <div className="text-right">
+                                                            <div className="text-sm font-bold text-gray-900 dark:text-white">
+                                                                {settings.currencySymbol}{value.toLocaleString('es-MX', { maximumFractionDigits: 0 })}
+                                                            </div>
+                                                            <div className="text-[10px] text-gray-400 font-medium">
+                                                                {((value / inventoryValue) * 100).toFixed(1)}%
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                ))}
                                         </div>
                                     </div>
                                 </div>
@@ -454,47 +802,95 @@ export function Reports() {
                                 </div>
                             </div>
 
-                            {/* Stock Alerts (Existing but refreshed) */}
+                            {/* Stock Alerts (Redesigned) */}
                             <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md border border-gray-300 dark:border-gray-700 overflow-hidden">
                                 <div className="p-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
                                     <h3 className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
                                         <AlertCircle className={cn("w-5 h-5", lowStockProducts.length > 0 ? "text-red-500" : "text-green-500")} />
-                                        {lowStockProducts.length > 0 ? "Alertas de Stock" : "Inventario Saludable"}
+                                        Alertas de Stock
                                     </h3>
                                     <span className={cn("px-3 py-1 rounded-full text-xs font-bold", lowStockProducts.length > 0 ? "bg-red-100 text-red-600" : "bg-green-100 text-green-600")}>
                                         {lowStockProducts.length} productos
                                     </span>
                                 </div>
                                 {lowStockProducts.length > 0 ? (
-                                    <div className="overflow-x-auto">
-                                        <table className="w-full">
-                                            <thead className="bg-gray-50 dark:bg-gray-700/50">
-                                                <tr>
-                                                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Producto</th>
-                                                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Stock Actual</th>
-                                                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Estado</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                                                {lowStockProducts.map(p => (
-                                                    <tr key={p.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
-                                                        <td className="px-6 py-4 font-medium text-gray-900 dark:text-white">{p.name}</td>
-                                                        <td className="px-6 py-4">
-                                                            <span className="font-bold text-red-600">{p.stock}</span>
-                                                            <span className="text-gray-400 text-xs ml-2">/ min {Math.max(p.min_stock, settings.inventory?.lowStockThreshold || 0)}</span>
-                                                        </td>
-                                                        <td className="px-6 py-4">
-                                                            <div className="w-full max-w-[100px] h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                                                                <div
-                                                                    className="h-full bg-red-500 rounded-full"
-                                                                    style={{ width: `${Math.min(100, (p.stock / p.min_stock) * 100)}%` }}
+                                    <div>
+                                        {/* List Header */}
+                                        <div className="grid grid-cols-12 gap-4 px-6 py-3 bg-gray-50 dark:bg-gray-900/50 text-xs font-semibold text-gray-500 uppercase border-b border-gray-100 dark:border-gray-700">
+                                            <div className="col-span-1">Imagen</div>
+                                            <div className="col-span-4 cursor-pointer hover:text-gray-700 dark:hover:text-gray-300 flex items-center gap-1" onClick={() => {/* Add sort logic later if needed */ }}>
+                                                Producto
+                                            </div>
+                                            <div className="col-span-2 text-center">Categoría</div>
+                                            <div className="col-span-2 text-right">Precio</div>
+                                            <div className="col-span-3 text-right">Stock Actual</div>
+                                        </div>
+
+                                        {/* List Items */}
+                                        <div className="divide-y divide-gray-100 dark:divide-gray-700 max-h-[500px] overflow-y-auto">
+                                            {lowStockProducts.map(p => (
+                                                <div key={p.id} className="grid grid-cols-12 gap-4 px-6 py-4 items-center hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors group">
+                                                    {/* Image */}
+                                                    <div className="col-span-1">
+                                                        <div className="w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-700 overflow-hidden border border-gray-200 dark:border-gray-600">
+                                                            {p.image ? (
+                                                                <img
+                                                                    src={getImageSrc(p.image)}
+                                                                    alt=""
+                                                                    className="w-full h-full object-cover"
+                                                                    onError={(e) => {
+                                                                        (e.target as HTMLImageElement).style.display = 'none';
+                                                                        (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
+                                                                    }}
                                                                 />
+                                                            ) : null}
+                                                            <div className={cn("w-full h-full flex items-center justify-center text-gray-400 dark:text-gray-500", p.image ? "hidden" : "")}>
+                                                                <Package className="w-5 h-5" />
                                                             </div>
-                                                        </td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Product Info */}
+                                                    <div className="col-span-4">
+                                                        <p className="font-bold text-gray-900 dark:text-white text-sm truncate">{p.name}</p>
+                                                        <p className="text-xs text-gray-500 font-mono">{p.code}</p>
+                                                    </div>
+
+                                                    {/* Category */}
+                                                    <div className="col-span-2 flex justify-center">
+                                                        <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600">
+                                                            {p.category || 'General'}
+                                                        </span>
+                                                    </div>
+
+                                                    {/* Price */}
+                                                    <div className="col-span-2 text-right">
+                                                        <p className="font-bold text-gray-900 dark:text-white text-sm">
+                                                            {settings.currencySymbol}{p.price.toFixed(2)}
+                                                        </p>
+                                                        <p className="text-[10px] text-gray-400">
+                                                            Costo: {settings.currencySymbol}{p.cost.toFixed(2)}
+                                                        </p>
+                                                    </div>
+
+                                                    {/* Stock Status */}
+                                                    <div className="col-span-3 flex flex-col items-end gap-1">
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-xs font-bold text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/30 px-2 py-0.5 rounded-full">
+                                                                {p.stock} unidad{p.stock !== 1 ? 'es' : ''}
+                                                            </span>
+                                                        </div>
+                                                        <div className="w-24 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                                                            <div
+                                                                className="h-full bg-red-500 rounded-full"
+                                                                style={{ width: `${Math.min(100, (p.stock / (p.min_stock || 1)) * 100)}%` }}
+                                                            />
+                                                        </div>
+                                                        <span className="text-[10px] text-gray-400">Min: {Math.max(p.min_stock, settings.inventory?.lowStockThreshold || 0)}</span>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
                                     </div>
                                 ) : (
                                     <div className="p-12 text-center">
@@ -515,73 +911,138 @@ export function Reports() {
 
                     {activeTab === 'transactions' && (
                         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md border border-gray-300 dark:border-gray-700 overflow-hidden">
-                            <div className="p-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
+                            <div className="p-6 border-b border-gray-100 dark:border-gray-700 flex flex-col sm:flex-row justify-between items-center gap-4">
                                 <h3 className="font-bold text-gray-900 dark:text-white">Historial de Transacciones</h3>
-                                <span className="text-xs text-gray-500">Últimas 50 ventas</span>
+                                <div className="flex items-center gap-4 w-full sm:w-auto">
+                                    <div className="relative w-full sm:w-64">
+                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                        <input
+                                            type="text"
+                                            placeholder="Buscar por ID, cliente..."
+                                            value={searchTerm}
+                                            onChange={(e) => setSearchTerm(e.target.value)}
+                                            className="w-full pl-9 pr-4 py-2 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-lg text-sm text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder:text-gray-400"
+                                        />
+                                    </div>
+                                    <span className="text-xs text-gray-500 whitespace-nowrap hidden sm:inline-block">
+                                        {sortedSales.length} registros
+                                    </span>
+                                </div>
                             </div>
-                            <div className="overflow-x-auto">
-                                <table className="w-full">
-                                    <thead className="bg-gray-50 dark:bg-gray-900/50">
-                                        <tr>
-                                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">ID / Fecha</th>
-                                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Cliente</th>
-                                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Items</th>
-                                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Total</th>
-                                            <th className="px-6 py-3 text-right text-xs font-semibold text-gray-500 uppercase">Acción</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                                        {sales.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()).slice(0, 50).map((sale) => (
-                                            <tr key={sale.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
-                                                <td className="px-6 py-4">
-                                                    <div className="font-bold text-gray-900 dark:text-white">#{sale.id}</div>
-                                                    <div className="text-xs text-gray-400">
-                                                        {sale.created_at ? new Date(sale.created_at).toLocaleString() : '-'}
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                                        {sale.customer_name || 'Público General'}
-                                                    </div>
-                                                    <div className="text-xs text-gray-400 capitalize">{sale.payment_method}</div>
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200">
-                                                        {sale.items.length} productos
+
+                            {/* Sortable Header */}
+                            <div className="grid grid-cols-12 gap-4 px-6 py-4 bg-gray-50 dark:bg-gray-900/50 text-xs font-semibold text-gray-500 uppercase border-b border-gray-100 dark:border-gray-700 select-none">
+                                <div
+                                    className="col-span-3 cursor-pointer hover:text-gray-700 dark:hover:text-gray-300 flex items-center gap-1 transition-colors group"
+                                    onClick={() => requestSort('created_at')}
+                                >
+                                    Fecha / ID
+                                    <ArrowUpDown className={cn("w-3 h-3 text-gray-300 group-hover:text-gray-500", sortConfig?.key === 'created_at' && "text-cyan-500")} />
+                                </div>
+                                <div
+                                    className="col-span-3 cursor-pointer hover:text-gray-700 dark:hover:text-gray-300 flex items-center gap-1 transition-colors group"
+                                    onClick={() => requestSort('customer_name')}
+                                >
+                                    Cliente
+                                    <ArrowUpDown className={cn("w-3 h-3 text-gray-300 group-hover:text-gray-500", sortConfig?.key === 'customer_name' && "text-cyan-500")} />
+                                </div>
+                                <div className="col-span-2 text-center">Items</div>
+                                <div
+                                    className="col-span-2 text-right cursor-pointer hover:text-gray-700 dark:hover:text-gray-300 flex items-center justify-end gap-1 transition-colors group"
+                                    onClick={() => requestSort('total')}
+                                >
+                                    Total
+                                    <ArrowUpDown className={cn("w-3 h-3 text-gray-300 group-hover:text-gray-500", sortConfig?.key === 'total' && "text-cyan-500")} />
+                                </div>
+                                <div className="col-span-2 text-right">Acciones</div>
+                            </div>
+
+                            {/* List Content */}
+                            <div className="divide-y divide-gray-100 dark:divide-gray-700 max-h-[600px] overflow-y-auto bg-white dark:bg-gray-800">
+                                {sortedSales.slice(0, 100).map((sale) => (
+                                    <div key={sale.id} className="grid grid-cols-12 gap-4 px-6 py-4 items-center hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors group">
+
+                                        {/* Date / ID */}
+                                        <div className="col-span-3">
+                                            <div className="flex items-center gap-2">
+                                                <span className="font-bold text-gray-900 dark:text-white">#{sale.id}</span>
+                                                {sale.status === 'cancelled' && (
+                                                    <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400">
+                                                        CANCELADA
                                                     </span>
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <div className="font-bold text-gray-900 dark:text-white">
-                                                        {settings.currencySymbol}{sale.total.toFixed(2)}
-                                                    </div>
-                                                    {sale.status === 'cancelled' && (
-                                                        <div className="text-xs text-red-500 font-medium">Cancelada</div>
-                                                    )}
-                                                </td>
-                                                <td className="px-6 py-4 text-right">
-                                                    <div className="flex items-center justify-end gap-2">
-                                                        <button
-                                                            onClick={() => pdfGenerator.generateInvoice(sale, settings)}
-                                                            className="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 font-medium text-sm flex items-center gap-1"
-                                                        >
-                                                            <Download className="w-4 h-4" />
-                                                            <span className="hidden sm:inline">Ticket</span>
-                                                        </button>
-                                                        {sale.status !== 'cancelled' && (
-                                                            <button
-                                                                onClick={() => setSaleToCancel(sale)}
-                                                                className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 font-medium text-sm flex items-center gap-1"
-                                                            >
-                                                                <X className="w-4 h-4" />
-                                                                <span className="hidden sm:inline">Cancelar</span>
-                                                            </button>
-                                                        )}
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                                                )}
+                                            </div>
+                                            <div className="text-xs text-gray-400 mt-0.5">
+                                                {sale.created_at ? new Date(sale.created_at).toLocaleString('es-MX', {
+                                                    day: '2-digit', month: '2-digit', year: 'numeric',
+                                                    hour: '2-digit', minute: '2-digit'
+                                                }) : '-'}
+                                            </div>
+                                        </div>
+
+                                        {/* Client */}
+                                        <div className="col-span-3">
+                                            <div className="font-medium text-gray-700 dark:text-gray-200 truncate pr-4">
+                                                {sale.customer_name || 'Público General'}
+                                            </div>
+                                            <div className="flex items-center gap-1.5 mt-0.5">
+                                                <span className={cn(
+                                                    "w-1.5 h-1.5 rounded-full",
+                                                    sale.payment_method === 'card' ? "bg-purple-500" :
+                                                        sale.payment_method === 'transfer' ? "bg-blue-500" :
+                                                            "bg-green-500"
+                                                )} />
+                                                <span className="text-xs text-gray-400 capitalize">
+                                                    {sale.payment_method === 'card' ? 'Tarjeta' :
+                                                        sale.payment_method === 'transfer' ? 'Transferencia' : 'Efectivo'}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        {/* Items Count badge */}
+                                        <div className="col-span-2 flex justify-center">
+                                            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600">
+                                                {sale.items.length} prod.
+                                            </span>
+                                        </div>
+
+                                        {/* Total */}
+                                        <div className="col-span-2 text-right">
+                                            <div className={cn(
+                                                "font-bold text-base",
+                                                sale.status === 'cancelled' ? "text-gray-400 line-through decoration-red-500" : "text-gray-900 dark:text-white"
+                                            )}>
+                                                {settings.currencySymbol}{sale.total.toFixed(2)}
+                                            </div>
+                                        </div>
+
+                                        {/* Actions */}
+                                        <div className="col-span-2 text-right flex items-center justify-end gap-2">
+                                            <button
+                                                onClick={() => pdfGenerator.generateInvoice(sale, settings)}
+                                                className="p-1.5 text-indigo-600 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors"
+                                                title="Reimprimir Ticket"
+                                            >
+                                                <Download className="w-4 h-4" />
+                                            </button>
+
+                                            {sale.status !== 'cancelled' && (
+                                                <button
+                                                    onClick={() => setSaleToCancel(sale)}
+                                                    className="p-1.5 text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors"
+                                                    title="Cancelar Venta"
+                                                >
+                                                    <X className="w-4 h-4" />
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                                {sortedSales.length === 0 && (
+                                    <div className="p-12 text-center text-gray-400">
+                                        No hay transacciones registradas.
+                                    </div>
+                                )}
                             </div>
                         </div>
                     )}

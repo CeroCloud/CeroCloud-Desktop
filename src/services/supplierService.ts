@@ -1,15 +1,4 @@
-
-
-export interface Supplier {
-    id?: number
-    name: string
-    contact_name?: string
-    email?: string
-    phone?: string
-    address?: string
-    notes?: string
-    created_at?: string
-}
+import { Supplier } from '@/types/database'
 
 class SupplierService {
     async getAll(): Promise<Supplier[]> {
