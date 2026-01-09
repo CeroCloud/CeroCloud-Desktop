@@ -249,5 +249,7 @@ export function registerIpcHandlers() {
         return { success: true }
     })
 
+    // Inventory Logs handlers REMOVED
+
     console.log('✅ IPC Handlers registered')
 }

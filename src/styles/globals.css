@@ -4,7 +4,7 @@
 
 @layer base {
   :root {
-    --background: 210 40% 98%;
+    --background: 220 15% 96%;
     --foreground: 222.2 84% 4.9%;
 
     --card: 0 0% 100%;
@@ -96,6 +96,14 @@
 
   .form-label {
     @apply block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2;
+  }
+
+  .compact .form-input {
+    @apply py-1.5 px-3 text-sm;
+  }
+
+  .compact .form-label {
+    @apply mb-1 text-xs;
   }
 }
 

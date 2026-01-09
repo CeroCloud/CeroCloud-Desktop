@@ -6,8 +6,21 @@ import { ReportTemplate } from '@/components/print/ReportTemplate'
 import html2canvas from 'html2canvas'
 import jsPDF from 'jspdf'
 
+import { clientService } from './clientService'
+
 export const pdfGenerator = {
     generateInvoice: async (sale: Sale, settings: CompanySettings) => {
+        // Fetch client data if customer name exists
+        let client: any
+        if (sale.customer_name) {
+            try {
+                const results = await clientService.search(sale.customer_name)
+                client = results.find(c => c.name.toLowerCase() === sale.customer_name?.toLowerCase())
+            } catch (error) {
+                console.warn('Error fetching client details:', error)
+            }
+        }
+
         // Create a temporary container
         const container = document.createElement('div')
         container.style.position = 'absolute'
@@ -25,7 +38,7 @@ export const pdfGenerator = {
             await new Promise<void>((resolve) => {
                 root.render(
                     <div className="pdf-container">
-                        <InvoiceTemplate sale={sale} settings={settings} />
+                        <InvoiceTemplate sale={sale} settings={settings} client={client} />
                     </div>
                 )
                 // Give it a moment to paint logic and load images
@@ -46,15 +59,26 @@ export const pdfGenerator = {
 
             // Generate PDF
             const imgData = canvas.toDataURL('image/png')
+
+            // Calculate dimensions based on settings
+            const isTicket = settings.invoice?.paperSize === 'ticket80mm'
+            const pdfWidth = isTicket ? 80 : 210 // 80mm or A4 width (210mm)
+            const pdfHeight = (canvas.height * pdfWidth) / canvas.width
+
             const pdf = new jsPDF({
                 orientation: 'portrait',
                 unit: 'mm',
-                format: 'a4'
+                format: isTicket ? [pdfWidth, pdfHeight] : 'a4'
             })
 
-            const imgProps = pdf.getImageProperties(imgData)
-            const pdfWidth = pdf.internal.pageSize.getWidth()
-            const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width
+            // If it's standard A4, we usually want to fit within margins, but let's keep it simple: fill width
+            if (!isTicket) {
+                // For A4, we calculate height relative to A4 width (210)
+                // If the content is longer than A4, we might need multiple pages.
+                // But InvoiceTemplate A4 is fixed height usually? 
+                // Currently logic was: const pdfWidth = pdf.internal.pageSize.getWidth(); ...
+                // Let's stick to simple logic for now. 
+            }
 
             pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight)
             pdf.save(`factura_${sale.id}_${new Date().toISOString().split('T')[0]}.pdf`)

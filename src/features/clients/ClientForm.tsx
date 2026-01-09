@@ -1,5 +1,6 @@
 
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { X, Save, Loader2 } from 'lucide-react'
 import { clientService, type Client } from '@/services/clientService'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -75,7 +76,7 @@ export function ClientForm({ isOpen, onClose, onSuccess, clientToEdit }: ClientF
         }
     }
 
-    return (
+    return createPortal(
         <AnimatePresence>
             {isOpen && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
@@ -85,7 +86,7 @@ export function ClientForm({ isOpen, onClose, onSuccess, clientToEdit }: ClientF
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={onClose}
-                        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+                        className="absolute inset-0 bg-black/20 backdrop-blur-sm"
                     />
 
                     {/* Modal */}
@@ -227,6 +228,7 @@ export function ClientForm({ isOpen, onClose, onSuccess, clientToEdit }: ClientF
                     </motion.div>
                 </div>
             )}
-        </AnimatePresence>
+        </AnimatePresence>,
+        document.body
     )
 }

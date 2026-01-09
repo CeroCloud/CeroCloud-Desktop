@@ -1,5 +1,6 @@
 
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Calendar, DollarSign, ShoppingBag, Loader2, Package, Search } from 'lucide-react'
 import { cn, formatCurrency } from '@/lib/utils'
@@ -43,7 +44,7 @@ export function ClientHistoryModal({ isOpen, onClose, client }: ClientHistoryMod
         s.items.some(i => i.product_name.toLowerCase().includes(searchTerm.toLowerCase()))
     )
 
-    return (
+    return createPortal(
         <AnimatePresence>
             {isOpen && client && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
@@ -52,7 +53,7 @@ export function ClientHistoryModal({ isOpen, onClose, client }: ClientHistoryMod
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={onClose}
-                        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+                        className="absolute inset-0 bg-black/20 backdrop-blur-sm"
                     />
 
                     <motion.div
@@ -79,7 +80,7 @@ export function ClientHistoryModal({ isOpen, onClose, client }: ClientHistoryMod
                         </div>
 
                         {/* Stats Banner */}
-                        <div className="bg-indigo-50 dark:bg-indigo-900/20 px-6 py-4 grid grid-cols-3 gap-4 border-b border-indigo-100 dark:border-indigo-900/30 shrink-0">
+                        <div className="bg-indigo-50 dark:bg-indigo-900/20 px-6 py-4 grid grid-cols-1 sm:grid-cols-3 gap-4 border-b border-indigo-100 dark:border-indigo-900/30 shrink-0">
                             <div className="bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm border border-indigo-100 dark:border-gray-700 flex items-center gap-3">
                                 <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-full text-green-600 dark:text-green-400">
                                     <DollarSign className="w-5 h-5" />
@@ -141,8 +142,8 @@ export function ClientHistoryModal({ isOpen, onClose, client }: ClientHistoryMod
                                 ) : (
                                     filteredSales.map((sale) => (
                                         <div key={sale.id} className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                                            <div className="px-4 py-3 bg-gray-50 dark:bg-gray-700/30 flex items-center justify-between border-b border-gray-100 dark:border-gray-700">
-                                                <div className="flex items-center gap-3">
+                                            <div className="px-4 py-3 bg-gray-50 dark:bg-gray-700/30 flex flex-wrap items-center justify-between gap-2 border-b border-gray-100 dark:border-gray-700">
+                                                <div className="flex flex-wrap items-center gap-3">
                                                     <span className="font-mono text-sm font-bold text-gray-700 dark:text-gray-300">#{sale.id}</span>
                                                     <span className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1">
                                                         <Calendar className="w-3 h-3" />
@@ -197,6 +198,7 @@ export function ClientHistoryModal({ isOpen, onClose, client }: ClientHistoryMod
                     </motion.div>
                 </div>
             )}
-        </AnimatePresence>
+        </AnimatePresence>,
+        document.body
     )
 }

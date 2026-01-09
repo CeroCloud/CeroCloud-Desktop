@@ -1,7 +1,9 @@
 
 import { useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { X, Save, Loader2 } from 'lucide-react'
-import { supplierService, type Supplier } from '@/services/supplierService'
+import { supplierService } from '@/services/supplierService'
+import { type Supplier } from '@/types/database'
 import { motion, AnimatePresence } from 'framer-motion'
 import { toast } from 'sonner'
 import { useForm } from 'react-hook-form'
@@ -10,11 +12,10 @@ import { z } from 'zod'
 
 const supplierSchema = z.object({
     name: z.string().min(1, 'El nombre es requerido'),
-    contact_name: z.string().optional(),
+    contact: z.string().optional(),
     email: z.string().email('Email inválido').optional().or(z.literal('')),
     phone: z.string().optional(),
     address: z.string().optional(),
-    notes: z.string().optional(),
 })
 
 type SupplierFormValues = z.infer<typeof supplierSchema>
@@ -34,11 +35,10 @@ export function SupplierForm({ supplier, onClose }: SupplierFormProps) {
         resolver: zodResolver(supplierSchema),
         defaultValues: {
             name: '',
-            contact_name: '',
+            contact: '',
             email: '',
             phone: '',
             address: '',
-            notes: '',
         }
     })
 
@@ -46,11 +46,10 @@ export function SupplierForm({ supplier, onClose }: SupplierFormProps) {
         if (supplier) {
             reset({
                 name: supplier.name,
-                contact_name: supplier.contact_name || '',
+                contact: supplier.contact || '',
                 email: supplier.email || '',
                 phone: supplier.phone || '',
                 address: supplier.address || '',
-                notes: supplier.notes || '',
             })
         }
     }, [supplier, reset])
@@ -71,7 +70,7 @@ export function SupplierForm({ supplier, onClose }: SupplierFormProps) {
         }
     }
 
-    return (
+    return createPortal(
         <AnimatePresence>
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
                 {/* Backdrop */}
@@ -80,7 +79,7 @@ export function SupplierForm({ supplier, onClose }: SupplierFormProps) {
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     onClick={onClose}
-                    className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+                    className="absolute inset-0 bg-black/20 backdrop-blur-sm"
                 />
 
                 {/* Modal */}
@@ -136,7 +135,7 @@ export function SupplierForm({ supplier, onClose }: SupplierFormProps) {
                                     </label>
                                     <input
                                         type="text"
-                                        {...register('contact_name')}
+                                        {...register('contact')}
                                         placeholder="Ej. Juan Pérez"
                                         className="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none"
                                     />
@@ -184,18 +183,7 @@ export function SupplierForm({ supplier, onClose }: SupplierFormProps) {
                                 />
                             </div>
 
-                            {/* Notas */}
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                                    Notas Adicionales
-                                </label>
-                                <textarea
-                                    {...register('notes')}
-                                    rows={3}
-                                    placeholder="Información adicional, condiciones de pago, horarios de entrega..."
-                                    className="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none resize-none"
-                                />
-                            </div>
+
                         </form>
                     </div>
 
@@ -224,6 +212,7 @@ export function SupplierForm({ supplier, onClose }: SupplierFormProps) {
                     </div>
                 </motion.div>
             </div>
-        </AnimatePresence>
+        </AnimatePresence>,
+        document.body
     )
 }

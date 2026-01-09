@@ -10,6 +10,8 @@ const db = new Database(dbPath)
 
 // Habilitar WAL (Write-Ahead Logging) para mejor rendimiento y seguridad
 db.pragma('journal_mode = WAL')
+// Habilitar claves foráneas
+db.pragma('foreign_keys = ON')
 
 // ==========================================
 // 1. Definición del Esquema (Schema)
@@ -102,6 +104,7 @@ function initSchema() {
 
 
 
+
   // Índices Estratégicos para Rendimiento
   db.exec(`
     CREATE INDEX IF NOT EXISTS idx_products_name ON products(name);
@@ -110,6 +113,7 @@ function initSchema() {
     CREATE INDEX IF NOT EXISTS idx_sale_items_sale_id ON sale_items(sale_id);
     CREATE INDEX IF NOT EXISTS idx_sale_items_product_id ON sale_items(product_id);
     CREATE INDEX IF NOT EXISTS idx_clients_name ON clients(name);
+    CREATE INDEX IF NOT EXISTS idx_clients_tax_id ON clients(tax_id);
     CREATE INDEX IF NOT EXISTS idx_clients_tax_id ON clients(tax_id);
   `)
 
@@ -226,6 +230,7 @@ function initializeDemoData() {
 // 3. Operaciones de Base de Datos (Queries)
 // ==========================================
 
+// Helper interno para logs ELIMINADO
 export const productQueries = {
   getAll: (): Product[] => {
     return db.prepare('SELECT * FROM products ORDER BY name ASC').all() as Product[]
@@ -263,7 +268,9 @@ export const productQueries = {
       updated_at: product.updated_at || new Date().toISOString()
     })
 
-    return { ...product, id: Number(info.lastInsertRowid) }
+    const newId = Number(info.lastInsertRowid)
+
+    return { ...product, id: newId }
   },
 
   createOrUpdate: (product: Omit<Product, 'id'> & { id?: number }): { product: Product; isNew: boolean } => {
@@ -295,6 +302,8 @@ export const productQueries = {
         updated_at: new Date().toISOString()
       })
 
+      // Log de actualización ELIMINADO
+
       return {
         product: { ...existing, ...product, id: existing.id },
         isNew: false
@@ -319,8 +328,12 @@ export const productQueries = {
         updated_at: product.updated_at || new Date().toISOString()
       })
 
+      const newId = Number(info.lastInsertRowid)
+
+
+
       return {
-        product: { ...product, id: Number(info.lastInsertRowid) },
+        product: { ...product, id: newId },
         isNew: true
       }
     }
@@ -330,6 +343,8 @@ export const productQueries = {
     const fields = Object.keys(productData).filter(key => key !== 'id' && key !== 'created_at')
     if (fields.length === 0) return productQueries.getById(id) || null
 
+
+
     const setClause = fields.map(field => `${field} = @${field} `).join(', ')
     const stmt = db.prepare(`UPDATE products SET ${setClause}, updated_at = @updated_at WHERE id = @id`)
 
@@ -338,6 +353,8 @@ export const productQueries = {
       id,
       updated_at: new Date().toISOString()
     })
+
+    // Registrar log si fue un ajuste de stock ELIMINADO
 
     return productQueries.getById(id) || null
   },
@@ -431,7 +448,13 @@ export const clientQueries = {
 
 export const supplierQueries = {
   getAll: (): Supplier[] => {
-    return db.prepare('SELECT * FROM suppliers ORDER BY name ASC').all() as Supplier[]
+    return db.prepare(`
+      SELECT s.*, count(p.id) as products_count 
+      FROM suppliers s
+      LEFT JOIN products p ON s.id = p.supplier_id
+      GROUP BY s.id
+      ORDER BY s.name ASC
+    `).all() as Supplier[]
   },
 
   getById: (id: number): Supplier | undefined => {
@@ -542,6 +565,7 @@ export const saleQueries = {
         })
 
         if (!isRestore) {
+          // Actualizar stock
           updateStock.run({ qty: item.quantity, id: item.product_id })
         }
       }
@@ -598,6 +622,9 @@ export const cancelSale = (id: number): Sale | null => {
     const updateStock = db.prepare('UPDATE products SET stock = stock + @qty WHERE id = @id')
 
     for (const item of items) {
+
+
+      // Restaurar stock
       updateStock.run({ qty: item.quantity, id: item.product_id })
     }
 
@@ -610,6 +637,12 @@ export const cancelSale = (id: number): Sale | null => {
   }
   return result
 }
+
+// ==========================================
+// Inventory Logs (Kardex / Trazabilidad)
+// ==========================================
+
+// Logs de Inventario ELIMINADOS
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function restoreDatabase(data: any) {
@@ -739,6 +772,8 @@ export function clearAll() {
   clearTx()
   console.log('✅ Base de datos limpiada completamente')
 }
+
+
 
 export function initializeDatabase() {
   initSchema()

@@ -24,6 +24,7 @@ export interface Supplier {
     email?: string
     address?: string
     created_at?: string
+    products_count?: number
 }
 
 export interface Client {
@@ -75,6 +76,22 @@ export interface CartItem {
     quantity: number
 }
 
+export interface InventoryLog {
+    id?: number
+    product_id: number
+    product_code?: string
+    product_name?: string
+    movement_type: 'sale' | 'purchase' | 'adjustment' | 'return'
+    quantity: number // Positivo para entradas, negativo para salidas
+    stock_before: number
+    stock_after: number
+    reference_type?: string // 'sale', 'manual', 'purchase_order', etc.
+    reference_id?: number
+    notes?: string
+    user?: string
+    created_at?: string
+}
+
 export interface CompanySettings {
     name: string
     address?: string
@@ -118,6 +135,9 @@ export interface CompanySettings {
         prefix: string
         nextNumber: number
         disclaimer: string // Texto legal al final del ticket
+        paperSize?: 'a4' | 'ticket80mm'
+        headerImage?: string
+        footerImage?: string
     }
 
     // Inventario
@@ -126,10 +146,10 @@ export interface CompanySettings {
         showVisualAlerts: boolean
     }
 
-    // Backups
     backup: {
         autoBackup: boolean
-        frequency: 'daily' | 'weekly'
+        frequency: 'daily' | 'weekly' | 'monthly'
+        time?: string // 'HH:mm' format (24h)
         lastBackupDate?: string
         location?: string
     }
@@ -138,6 +158,8 @@ export interface CompanySettings {
     theme: {
         mode: 'light' | 'dark' | 'system'
         density: 'normal' | 'compact'
+        fontSize: 'small' | 'normal' | 'large' | 'xlarge' // UI Scaling
+        borderRadius: 'none' | 'small' | 'normal' | 'large' // Corner radius
     }
 
     // Seguridad
@@ -145,5 +167,10 @@ export interface CompanySettings {
         enablePin: boolean
         pin?: string
         lockSettings: boolean
+    }
+
+    // Actualizaciones
+    updates: {
+        autoCheck: boolean
     }
 }
