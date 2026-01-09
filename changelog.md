@@ -1,3 +1,13 @@
+## [1.1.1-beta.1](https://github.com/CeroCloud/CeroCloud-Desktop/compare/v1.1.0...v1.1.1-beta.1) (2026-01-09)
+
+
+### Bug Fixes
+
+* agregar plugins semantic-release faltantes y latest.yml ([e962ae0](https://github.com/CeroCloud/CeroCloud-Desktop/commit/e962ae004fee386957d6b395cc9cd67752525d92))
+* corregir semantic-release config y agregar plugins faltantes ([d2d229d](https://github.com/CeroCloud/CeroCloud-Desktop/commit/d2d229d7b0bed166cfe746cf3d83f9d42e60f24b))
+* separar build de Windows en workflow dedicado ([fd117c6](https://github.com/CeroCloud/CeroCloud-Desktop/commit/fd117c651c8726d7f5f9a3e4844c9b5d3d13e969))
+* sync hotfix v1.1.1 to develop ([7ec88b7](https://github.com/CeroCloud/CeroCloud-Desktop/commit/7ec88b7273bbe82756e08e467d8ba36384b3d035))
+
 # Changelog
 
 Todos los cambios relevantes de **CeroCloud** serán documentados en este archivo.
@@ -487,4 +497,3 @@ El formato sigue de manera ligera el estándar de *Keep a Changelog* y utiliza *
 ---
 
 Este archivo se actualizará con cada nueva versión estable del proyecto.
-
