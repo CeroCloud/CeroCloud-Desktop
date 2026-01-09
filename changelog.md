@@ -1,3 +1,10 @@
+## [1.1.1-beta.2](https://github.com/CeroCloud/CeroCloud-Desktop/compare/v1.1.1-beta.1...v1.1.1-beta.2) (2026-01-09)
+
+
+### Bug Fixes
+
+* agregar prereleased trigger para build de Windows ([dcf2953](https://github.com/CeroCloud/CeroCloud-Desktop/commit/dcf2953f25aa988e1279992a1530412e26b4e7bf))
+
 ## [1.1.1-beta.1](https://github.com/CeroCloud/CeroCloud-Desktop/compare/v1.1.0...v1.1.1-beta.1) (2026-01-09)
 
 
