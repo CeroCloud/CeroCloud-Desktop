@@ -1,3 +1,12 @@
+# [1.2.0-beta.3](https://github.com/CeroCloud/CeroCloud-Desktop/compare/v1.2.0-beta.2...v1.2.0-beta.3) (2026-01-10)
+
+
+### Bug Fixes
+
+* change release workflow to ubuntu-latest with Wine ([95b7069](https://github.com/CeroCloud/CeroCloud-Desktop/commit/95b706960780c5c051a68701dd8fffcfc1d1c120))
+* change release workflow to ubuntu-latest with Wine for cross-platform builds ([8572ab3](https://github.com/CeroCloud/CeroCloud-Desktop/commit/8572ab3986a39321baf6c76ce4175cdaed6ba53a))
+* hotfix v1.1.1 - corregir auto-update y semantic-release ([6d4de52](https://github.com/CeroCloud/CeroCloud-Desktop/commit/6d4de52bbcdf9a30cbf4b983441d5a96e64dc65b))
+
 # [1.2.0-beta.2](https://github.com/CeroCloud/CeroCloud-Desktop/compare/v1.2.0-beta.1...v1.2.0-beta.2) (2026-01-10)
 
 
