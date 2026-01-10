@@ -1,3 +1,15 @@
+# [1.2.0-beta.2](https://github.com/CeroCloud/CeroCloud-Desktop/compare/v1.2.0-beta.1...v1.2.0-beta.2) (2026-01-10)
+
+
+### Bug Fixes
+
+* add Wine to develop workflow for cross-platform builds ([7f42d46](https://github.com/CeroCloud/CeroCloud-Desktop/commit/7f42d46fd16689fdf1198fb3035e2d56fd2a2dec))
+
+
+### Features
+
+* simplificar build para construir Linux y Windows juntos ([b7dffb7](https://github.com/CeroCloud/CeroCloud-Desktop/commit/b7dffb76d90fd86e6f130cdf25902abaa2b80e66))
+
 # [1.2.0-beta.1](https://github.com/CeroCloud/CeroCloud-Desktop/compare/v1.1.0...v1.2.0-beta.1) (2026-01-09)
 
 
