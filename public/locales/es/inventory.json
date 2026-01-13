@@ -1,0 +1,68 @@
+{
+  "title": "Inventario",
+  "subtitle": "Gestiona tus productos y stock",
+  "addProduct": "Agregar Producto",
+  "editProduct": "Editar Producto",
+  "deleteProduct": "Eliminar Producto",
+  "searchPlaceholder": "Buscar productos por nombre, código o categoría...",
+  "filters": {
+    "all": "Todos",
+    "lowStock": "Stock Bajo",
+    "outOfStock": "Sin Stock",
+    "category": "Categoría",
+    "supplier": "Proveedor"
+  },
+  "table": {
+    "image": "Imagen",
+    "code": "Código",
+    "name": "Nombre",
+    "category": "Categoría",
+    "price": "Precio",
+    "cost": "Costo",
+    "stock": "Stock",
+    "minStock": "Stock Mínimo",
+    "actions": "Acciones",
+    "noImage": "Sin imagen"
+  },
+  "form": {
+    "basicInfo": "Información Básica",
+    "pricing": "Precios",
+    "stock": "Stock",
+    "productName": "Nombre del Producto",
+    "productCode": "Código del Producto",
+    "description": "Descripción",
+    "category": "Categoría",
+    "salePrice": "Precio de Venta",
+    "costPrice": "Precio de Costo",
+    "currentStock": "Stock Actual",
+    "minimumStock": "Stock Mínimo",
+    "supplier": "Proveedor",
+    "image": "Imagen",
+    "uploadImage": "Subir Imagen",
+    "changeImage": "Cambiar Imagen"
+  },
+  "stats": {
+    "totalProducts": "Total de Productos",
+    "lowStockItems": "Productos con Stock Bajo",
+    "outOfStockItems": "Productos sin Stock",
+    "totalValue": "Valor Total del Inventario"
+  },
+  "messages": {
+    "productAdded": "Producto agregado correctamente",
+    "productUpdated": "Producto actualizado correctamente",
+    "productDeleted": "Producto eliminado correctamente",
+    "confirmDelete": "¿Estás seguro de que quieres eliminar este producto?",
+    "noProducts": "No se encontraron productos",
+    "stockAlert": "Alerta de Stock",
+    "lowStockWarning": "Este producto tiene stock bajo"
+  },
+  "import": {
+    "title": "Importar Productos",
+    "subtitle": "Importa productos desde un archivo",
+    "selectFile": "Seleccionar Archivo",
+    "downloadTemplate": "Descargar Plantilla",
+    "importButton": "Importar",
+    "success": "Productos importados correctamente",
+    "error": "Error al importar productos"
+  }
+}

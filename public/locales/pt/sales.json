@@ -1,0 +1,64 @@
+{
+  "title": "Vendas (PDV)",
+  "subtitle": "Ponto de Venda",
+  "newSale": "Nova Venda",
+  "ticket": "Cupom",
+  "cart": {
+    "empty": "Carrinho Vazio",
+    "items": "Itens",
+    "subtotal": "Subtotal",
+    "tax": "Imposto",
+    "discount": "Desconto",
+    "total": "Total",
+    "clear": "Esvaziar Carrinho",
+    "addNote": "Adicionar Nota",
+    "note": "Nota"
+  },
+  "product": {
+    "searchPlaceholder": "Pesquisar produtos...",
+    "addToCart": "Adicionar ao Carrinho",
+    "outOfStock": "Sem Estoque",
+    "lowStock": "Estoque Baixo",
+    "inStock": "Em Estoque",
+    "price": "Preço",
+    "stock": "Estoque"
+  },
+  "payment": {
+    "title": "Pagamento",
+    "method": "Método de Pagamento",
+    "cash": "Dinheiro",
+    "card": "Cartão",
+    "transfer": "Transferência",
+    "other": "Outro",
+    "amountReceived": "Valor Recebido",
+    "change": "Troco",
+    "processSale": "Processar Venda",
+    "print": "Imprimir Cupom"
+  },
+  "client": {
+    "selectClient": "Selecionar Cliente",
+    "newClient": "Novo Cliente",
+    "optional": "Opcional",
+    "search": "Pesquisar cliente..."
+  },
+  "tabs": {
+    "newTab": "Nova Aba",
+    "closeTab": "Fechar Aba",
+    "limitReached": "Limite atingido",
+    "maxTabs": "Máximo 5 abas"
+  },
+  "messages": {
+    "saleCompleted": "Venda concluída com sucesso",
+    "saleError": "Erro ao processar venda",
+    "emptyCart": "O carrinho está vazio",
+    "insufficientStock": "Estoque insuficiente",
+    "invalidAmount": "Valor inválido",
+    "printSuccess": "Cupom impresso com sucesso"
+  },
+  "quickActions": {
+    "scanBarcode": "Escanear Código de Barras",
+    "addDiscount": "Adicionar Desconto",
+    "addClient": "Adicionar Cliente",
+    "viewHistory": "Ver Histórico"
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "title": "Acerca de CeroCloud",
+  "subtitle": "Gestión empresarial sin límites",
+  "version": "Versión",
+  "description": "CeroCloud es un sistema completo de gestión empresarial diseñado para pequeñas y medianas empresas.",
+  "features": {
+    "title": "Características",
+    "inventory": "Gestión de Inventario",
+    "sales": "Punto de Venta (POS)",
+    "reports": "Reportes y Análisis",
+    "clients": "Gestión de Clientes",
+    "suppliers": "Gestión de Proveedores",
+    "backups": "Respaldos Automáticos",
+    "offline": "Funciona Sin Conexión",
+    "privacy": "Privacidad Total"
+  },
+  "license": {
+    "title": "Licencia",
+    "type": "Licencia No Comercial",
+    "allowedUse": "Uso Permitido (Gratuito)",
+    "allowedDescription": "Uso ilimitado para gestión interna de tu negocio, uso personal, aprendizaje y modificación del código fuente.",
+    "modificationTitle": "Modificación y Estudio",
+    "modificationDescription": "Puedes modificar el código, estudiarlo y adaptarlo a tus necesidades. El código fuente está disponible en GitHub.",
+    "prohibitionTitle": "Prohibición de Venta",
+    "prohibitionDescription": "No puedes vender este software, cobrar por su instalación o comercializarlo. Es estrictamente para uso personal/empresarial.",
+    "commercialTitle": "Licencia Comercial",
+    "commercialDescription": "Para uso comercial (reventa, SaaS, consultoría), contacta a los autores en GitHub."
+  },
+  "support": {
+    "title": "Soporte",
+    "documentation": "Documentación",
+    "documentationDescription": "Accede a la guía completa y tutoriales.",
+    "community": "Comunidad",
+    "communityDescription": "Únete a nuestra comunidad en GitHub.",
+    "issues": "Reportar Problemas",
+    "issuesDescription": "La vía más rápida para soluciones.",
+    "contact": "Consultas Comerciales",
+    "contactDescription": "Contacta a los autores en GitHub."
+  },
+  "privacy": {
+    "title": "Privacidad Total",
+    "description": "Tus datos nunca salen de tu computadora. Todo se almacena localmente y tienes control completo.",
+    "noCloud": "Sin Nube",
+    "noCloudDescription": "Todos los datos se almacenan en tu dispositivo.",
+    "noTracking": "Sin Rastreo",
+    "noTrackingDescription": "No rastreamos tu actividad ni recopilamos datos.",
+    "openSource": "Código Abierto",
+    "openSourceDescription": "El código es público y auditable."
+  },
+  "credits": {
+    "title": "Créditos",
+    "developedBy": "Desarrollado por",
+    "contributors": "Colaboradores",
+    "thanksTo": "Agradecimientos a"
+  },
+  "legal": {
+    "title": "Información Legal",
+    "license": "Licencia",
+    "privacy": "Privacidad",
+    "terms": "Términos de Uso"
+  }
+}

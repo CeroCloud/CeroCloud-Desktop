@@ -1,0 +1,98 @@
+{
+  "app": {
+    "name": "CeroCloud",
+    "tagline": "No Cloud. No Limits.",
+    "version": "Version",
+    "release": "RELEASE"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "inventory": "Inventory",
+    "sales": "Sales",
+    "suppliers": "Suppliers",
+    "clients": "Clients",
+    "reports": "Reports",
+    "settings": "Settings",
+    "about": "About"
+  },
+  "shortcuts": {
+    "dashboard": "D",
+    "inventory": "I",
+    "sales": "V",
+    "suppliers": "P",
+    "clients": "C",
+    "reports": "R",
+    "settings": "S",
+    "about": "A"
+  },
+  "actions": {
+    "add": "Add",
+    "edit": "Edit",
+    "delete": "Delete",
+    "save": "Save",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "close": "Close",
+    "search": "Search",
+    "filter": "Filter",
+    "export": "Export",
+    "import": "Import",
+    "refresh": "Refresh",
+    "clear": "Clear",
+    "apply": "Apply",
+    "reset": "Reset",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "finish": "Finish",
+    "download": "Download",
+    "upload": "Upload",
+    "print": "Print",
+    "copy": "Copy",
+    "new": "New"
+  },
+  "status": {
+    "loading": "Loading...",
+    "saving": "Saving...",
+    "saved": "Saved",
+    "error": "Error",
+    "success": "Success",
+    "warning": "Warning",
+    "info": "Information",
+    "processing": "Processing...",
+    "completed": "Completed",
+    "pending": "Pending",
+    "active": "Active",
+    "inactive": "Inactive"
+  },
+  "messages": {
+    "noData": "No data available",
+    "noResults": "No results found",
+    "confirmDelete": "Are you sure you want to delete this item?",
+    "deleteSuccess": "Item deleted successfully",
+    "saveSuccess": "Changes saved successfully",
+    "error": "An error occurred",
+    "required": "This field is required",
+    "invalidFormat": "Invalid format",
+    "selectOption": "Select an option"
+  },
+  "time": {
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "week": "Week",
+    "month": "Month",
+    "year": "Year",
+    "all": "All",
+    "custom": "Custom",
+    "date": "Date",
+    "time": "Time",
+    "period": "Period"
+  },
+  "user": {
+    "user": "User",
+    "administrator": "Administrator",
+    "profile": "Profile",
+    "logout": "Logout",
+    "preferences": "Preferences"
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "title": "Clientes",
+  "subtitle": "Gerencie seus clientes",
+  "addClient": "Adicionar Cliente",
+  "editClient": "Editar Cliente",
+  "deleteClient": "Excluir Cliente",
+  "searchPlaceholder": "Pesquisar clientes por nome, e-mail ou telefone...",
+  "form": {
+    "personalInfo": "Informações Pessoais",
+    "contactInfo": "Informações de Contato",
+    "additionalInfo": "Informações Adicionais",
+    "name": "Nome",
+    "email": "E-mail",
+    "phone": "Telefone",
+    "address": "Endereço",
+    "city": "Cidade",
+    "state": "Estado",
+    "zipCode": "CEP",
+    "country": "País",
+    "taxId": "CPF/CNPJ",
+    "notes": "Notas"
+  },
+  "table": {
+    "name": "Nome",
+    "email": "E-mail",
+    "phone": "Telefone",
+    "address": "Endereço",
+    "totalPurchases": "Compras Totais",
+    "lastPurchase": "Última Compra",
+    "actions": "Ações"
+  },
+  "stats": {
+    "totalClients": "Total de Clientes",
+    "activeClients": "Clientes Ativos",
+    "newThisMonth": "Novos este Mês",
+    "topClients": "Melhores Clientes"
+  },
+  "messages": {
+    "clientAdded": "Cliente adicionado com sucesso",
+    "clientUpdated": "Cliente atualizado com sucesso",
+    "clientDeleted": "Cliente excluído com sucesso",
+    "confirmDelete": "Tem certeza de que deseja excluir este cliente?",
+    "noClients": "Nenhum cliente encontrado"
+  }
+}

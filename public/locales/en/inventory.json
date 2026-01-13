@@ -1,0 +1,68 @@
+{
+  "title": "Inventory",
+  "subtitle": "Manage your products and stock",
+  "addProduct": "Add Product",
+  "editProduct": "Edit Product",
+  "deleteProduct": "Delete Product",
+  "searchPlaceholder": "Search products by name, code, or category...",
+  "filters": {
+    "all": "All",
+    "lowStock": "Low Stock",
+    "outOfStock": "Out of Stock",
+    "category": "Category",
+    "supplier": "Supplier"
+  },
+  "table": {
+    "image": "Image",
+    "code": "Code",
+    "name": "Name",
+    "category": "Category",
+    "price": "Price",
+    "cost": "Cost",
+    "stock": "Stock",
+    "minStock": "Min Stock",
+    "actions": "Actions",
+    "noImage": "No image"
+  },
+  "form": {
+    "basicInfo": "Basic Information",
+    "pricing": "Pricing",
+    "stock": "Stock",
+    "productName": "Product Name",
+    "productCode": "Product Code",
+    "description": "Description",
+    "category": "Category",
+    "salePrice": "Sale Price",
+    "costPrice": "Cost Price",
+    "currentStock": "Current Stock",
+    "minimumStock": "Minimum Stock",
+    "supplier": "Supplier",
+    "image": "Image",
+    "uploadImage": "Upload Image",
+    "changeImage": "Change Image"
+  },
+  "stats": {
+    "totalProducts": "Total Products",
+    "lowStockItems": "Low Stock Items",
+    "outOfStockItems": "Out of Stock Items",
+    "totalValue": "Total Inventory Value"
+  },
+  "messages": {
+    "productAdded": "Product added successfully",
+    "productUpdated": "Product updated successfully",
+    "productDeleted": "Product deleted successfully",
+    "confirmDelete": "Are you sure you want to delete this product?",
+    "noProducts": "No products found",
+    "stockAlert": "Stock Alert",
+    "lowStockWarning": "This product has low stock"
+  },
+  "import": {
+    "title": "Import Products",
+    "subtitle": "Import products from a file",
+    "selectFile": "Select File",
+    "downloadTemplate": "Download Template",
+    "importButton": "Import",
+    "success": "Products imported successfully",
+    "error": "Error importing products"
+  }
+}

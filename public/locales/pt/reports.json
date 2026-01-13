@@ -1,0 +1,64 @@
+{
+  "title": "Relatórios",
+  "subtitle": "Análise e estatísticas",
+  "period": {
+    "title": "Período do Relatório",
+    "today": "Hoje",
+    "week": "Esta Semana",
+    "month": "Este Mês",
+    "all": "Todo o Tempo",
+    "custom": "Personalizado"
+  },
+  "export": {
+    "title": "Exportar Relatórios",
+    "description": "Baixe seus relatórios",
+    "sales": "Relatório de Vendas",
+    "inventory": "Relatório de Inventário",
+    "products": "Relatório de Produtos",
+    "financial": "Relatório Financeiro",
+    "excel": "Exportar para Excel",
+    "pdf": "Exportar para PDF",
+    "csv": "Exportar para CSV"
+  },
+  "sales": {
+    "title": "Vendas",
+    "totalSales": "Total de Vendas",
+    "totalRevenue": "Receita Total",
+    "averageTicket": "Ticket Médio",
+    "bestSellingProducts": "Produtos Mais Vendidos",
+    "salesByMethod": "Vendas por Método de Pagamento",
+    "salesByDay": "Vendas por Dia",
+    "salesByHour": "Vendas por Hora"
+  },
+  "inventory": {
+    "title": "Inventário",
+    "totalProducts": "Total de Produtos",
+    "totalValue": "Valor Total",
+    "lowStock": "Estoque Baixo",
+    "outOfStock": "Sem Estoque",
+    "topProducts": "Principais Produtos",
+    "categories": "Categorias"
+  },
+  "financial": {
+    "title": "Financeiro",
+    "revenue": "Receita",
+    "costs": "Custos",
+    "profit": "Lucro",
+    "margin": "Margem",
+    "expenses": "Despesas",
+    "balance": "Saldo"
+  },
+  "charts": {
+    "salesTrend": "Tendência de Vendas",
+    "revenueTrend": "Tendência de Receita",
+    "profitMargin": "Margem de Lucro",
+    "comparison": "Comparação"
+  },
+  "filters": {
+    "dateRange": "Intervalo de Datas",
+    "category": "Categoria",
+    "paymentMethod": "Método de Pagamento",
+    "client": "Cliente",
+    "product": "Produto"
+  }
+}

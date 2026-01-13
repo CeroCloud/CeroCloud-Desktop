@@ -1,0 +1,31 @@
+{
+  "title": "Paleta de Comandos",
+  "placeholder": "Escribe un comando o busca...",
+  "noResults": "No se encontraron resultados",
+  "navigation": {
+    "title": "Navegación",
+    "goToDashboard": "Ir a Dashboard",
+    "goToInventory": "Ir a Inventario",
+    "goToSales": "Ir a Ventas (POS)",
+    "goToReports": "Ir a Reportes",
+    "goToClients": "Ir a Clientes",
+    "goToSuppliers": "Ir a Proveedores",
+    "goToSettings": "Ir a Configuración",
+    "goToAbout": "Ir a Acerca de"
+  },
+  "actions": {
+    "title": "Acciones",
+    "newSale": "Nueva Venta",
+    "newProduct": "Nuevo Producto",
+    "newClient": "Nuevo Cliente",
+    "newSupplier": "Nuevo Proveedor",
+    "createBackup": "Crear Respaldo",
+    "exportReport": "Exportar Reporte"
+  },
+  "settings": {
+    "title": "Configuración",
+    "toggleTheme": "Cambiar Tema",
+    "changeLanguage": "Cambiar Idioma",
+    "openSettings": "Abrir Configuración"
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "title": "Clients",
+  "subtitle": "Manage your clients",
+  "addClient": "Add Client",
+  "editClient": "Edit Client",
+  "deleteClient": "Delete Client",
+  "searchPlaceholder": "Search clients by name, email, or phone...",
+  "form": {
+    "personalInfo": "Personal Information",
+    "contactInfo": "Contact Information",
+    "additionalInfo": "Additional Information",
+    "name": "Name",
+    "email": "Email",
+    "phone": "Phone",
+    "address": "Address",
+    "city": "City",
+    "state": "State",
+    "zipCode": "ZIP Code",
+    "country": "Country",
+    "taxId": "Tax ID",
+    "notes": "Notes"
+  },
+  "table": {
+    "name": "Name",
+    "email": "Email",
+    "phone": "Phone",
+    "address": "Address",
+    "totalPurchases": "Total Purchases",
+    "lastPurchase": "Last Purchase",
+    "actions": "Actions"
+  },
+  "stats": {
+    "totalClients": "Total Clients",
+    "activeClients": "Active Clients",
+    "newThisMonth": "New This Month",
+    "topClients": "Top Clients"
+  },
+  "messages": {
+    "clientAdded": "Client added successfully",
+    "clientUpdated": "Client updated successfully",
+    "clientDeleted": "Client deleted successfully",
+    "confirmDelete": "Are you sure you want to delete this client?",
+    "noClients": "No clients found"
+  }
+}

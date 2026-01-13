@@ -1,0 +1,31 @@
+{
+  "title": "Command Palette",
+  "placeholder": "Type a command or search...",
+  "noResults": "No results found",
+  "navigation": {
+    "title": "Navigation",
+    "goToDashboard": "Go to Dashboard",
+    "goToInventory": "Go to Inventory",
+    "goToSales": "Go to Sales (POS)",
+    "goToReports": "Go to Reports",
+    "goToClients": "Go to Clients",
+    "goToSuppliers": "Go to Suppliers",
+    "goToSettings": "Go to Settings",
+    "goToAbout": "Go to About"
+  },
+  "actions": {
+    "title": "Actions",
+    "newSale": "New Sale",
+    "newProduct": "New Product",
+    "newClient": "New Client",
+    "newSupplier": "New Supplier",
+    "createBackup": "Create Backup",
+    "exportReport": "Export Report"
+  },
+  "settings": {
+    "title": "Settings",
+    "toggleTheme": "Toggle Theme",
+    "changeLanguage": "Change Language",
+    "openSettings": "Open Settings"
+  }
+}

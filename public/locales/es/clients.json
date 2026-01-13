@@ -1,0 +1,45 @@
+{
+  "title": "Clientes",
+  "subtitle": "Gestiona tus clientes",
+  "addClient": "Agregar Cliente",
+  "editClient": "Editar Cliente",
+  "deleteClient": "Eliminar Cliente",
+  "searchPlaceholder": "Buscar clientes por nombre, correo o teléfono...",
+  "form": {
+    "personalInfo": "Información Personal",
+    "contactInfo": "Información de Contacto",
+    "additionalInfo": "Información Adicional",
+    "name": "Nombre",
+    "email": "Correo Electrónico",
+    "phone": "Teléfono",
+    "address": "Dirección",
+    "city": "Ciudad",
+    "state": "Estado/Provincia",
+    "zipCode": "Código Postal",
+    "country": "País",
+    "taxId": "RFC/NIT",
+    "notes": "Notas"
+  },
+  "table": {
+    "name": "Nombre",
+    "email": "Correo",
+    "phone": "Teléfono",
+    "address": "Dirección",
+    "totalPurchases": "Compras Totales",
+    "lastPurchase": "Última Compra",
+    "actions": "Acciones"
+  },
+  "stats": {
+    "totalClients": "Total de Clientes",
+    "activeClients": "Clientes Activos",
+    "newThisMonth": "Nuevos este Mes",
+    "topClients": "Mejores Clientes"
+  },
+  "messages": {
+    "clientAdded": "Cliente agregado correctamente",
+    "clientUpdated": "Cliente actualizado correctamente",
+    "clientDeleted": "Cliente eliminado correctamente",
+    "confirmDelete": "¿Estás seguro de que quieres eliminar este cliente?",
+    "noClients": "No se encontraron clientes"
+  }
+}

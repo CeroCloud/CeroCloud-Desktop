@@ -1,0 +1,85 @@
+{
+  "title": "Configuración",
+  "subtitle": "Configura tu aplicación",
+  "tabs": {
+    "company": "Empresa",
+    "sales": "Ventas y POS",
+    "inventory": "Inventario",
+    "backups": "Respaldos",
+    "appearance": "Apariencia",
+    "system": "Sistema"
+  },
+  "company": {
+    "title": "Información de la Empresa",
+    "name": "Nombre de la Empresa",
+    "logo": "Logo",
+    "address": "Dirección",
+    "phone": "Teléfono",
+    "email": "Correo Electrónico",
+    "taxId": "RFC/NIT",
+    "website": "Sitio Web",
+    "uploadLogo": "Subir Logo",
+    "changeLogo": "Cambiar Logo"
+  },
+  "sales": {
+    "title": "Configuración de Ventas",
+    "currency": "Moneda",
+    "currencySymbol": "Símbolo de Moneda",
+    "taxRate": "Tasa de Impuesto",
+    "paymentMethods": "Métodos de Pago",
+    "enableCash": "Habilitar Efectivo",
+    "enableCard": "Habilitar Tarjeta",
+    "enableTransfer": "Habilitar Transferencia",
+    "printReceipt": "Imprimir Ticket Automáticamente",
+    "receiptTemplate": "Plantilla de Ticket"
+  },
+  "inventory": {
+    "title": "Configuración de Inventario",
+    "lowStockAlert": "Alerta de Stock Bajo",
+    "lowStockThreshold": "Umbral de Stock Bajo",
+    "enableBarcode": "Habilitar Escáner de Código de Barras",
+    "autoUpdateStock": "Actualizar Stock Automáticamente",
+    "trackCosts": "Rastrear Costos"
+  },
+  "backups": {
+    "title": "Respaldos",
+    "autoBackup": "Respaldo Automático",
+    "backupFrequency": "Frecuencia de Respaldo",
+    "lastBackup": "Último Respaldo",
+    "createBackup": "Crear Respaldo",
+    "restoreBackup": "Restaurar Respaldo",
+    "downloadBackup": "Descargar Respaldo",
+    "daily": "Diario",
+    "weekly": "Semanal",
+    "monthly": "Mensual",
+    "never": "Nunca"
+  },
+  "appearance": {
+    "title": "Apariencia",
+    "theme": "Tema",
+    "light": "Claro",
+    "dark": "Oscuro",
+    "auto": "Automático",
+    "language": "Idioma",
+    "fontSize": "Tamaño de Fuente",
+    "compactMode": "Modo Compacto"
+  },
+  "system": {
+    "title": "Sistema",
+    "version": "Versión",
+    "checkUpdates": "Buscar Actualizaciones",
+    "autoUpdate": "Actualizaciones Automáticas",
+    "database": "Base de Datos",
+    "clearCache": "Limpiar Caché",
+    "resetSettings": "Restablecer Configuración",
+    "about": "Acerca de"
+  },
+  "messages": {
+    "settingsSaved": "Configuración guardada correctamente",
+    "backupCreated": "Respaldo creado correctamente",
+    "backupRestored": "Respaldo restaurado correctamente",
+    "updateAvailable": "Actualización disponible",
+    "noUpdates": "No hay actualizaciones disponibles",
+    "confirmReset": "¿Estás seguro de que quieres restablecer toda la configuración?"
+  }
+}

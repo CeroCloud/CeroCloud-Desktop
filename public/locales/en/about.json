@@ -1,0 +1,62 @@
+{
+  "title": "About CeroCloud",
+  "subtitle": "Business management without limits",
+  "version": "Version",
+  "description": "CeroCloud is a complete business management system designed for small and medium businesses.",
+  "features": {
+    "title": "Features",
+    "inventory": "Inventory Management",
+    "sales": "Point of Sale (POS)",
+    "reports": "Reports and Analytics",
+    "clients": "Client Management",
+    "suppliers": "Supplier Management",
+    "backups": "Automatic Backups",
+    "offline": "Works Offline",
+    "privacy": "Complete Privacy"
+  },
+  "license": {
+    "title": "License",
+    "type": "Non-Commercial License",
+    "allowedUse": "Allowed Use (Free)",
+    "allowedDescription": "Unlimited use for internal business management, personal use, learning, and source code modification.",
+    "modificationTitle": "Modification and Study",
+    "modificationDescription": "You can modify the code, study it, and adapt it to your needs. The source code is available on GitHub.",
+    "prohibitionTitle": "Prohibition of Sale",
+    "prohibitionDescription": "You cannot sell this software, charge for its installation, or commercialize it. It is strictly for personal/business use.",
+    "commercialTitle": "Commercial License",
+    "commercialDescription": "For commercial use (resale, SaaS, consultancy), please contact the authors on GitHub."
+  },
+  "support": {
+    "title": "Support",
+    "documentation": "Documentation",
+    "documentationDescription": "Access the complete guide and tutorials.",
+    "community": "Community",
+    "communityDescription": "Join our community on GitHub.",
+    "issues": "Report Issues",
+    "issuesDescription": "The fastest way to solutions.",
+    "contact": "Business Inquiries",
+    "contactDescription": "Contact the authors on GitHub."
+  },
+  "privacy": {
+    "title": "Total Privacy",
+    "description": "Your data never leaves your computer. Everything is stored locally and you have complete control.",
+    "noCloud": "No Cloud",
+    "noCloudDescription": "All data is stored on your device.",
+    "noTracking": "No Tracking",
+    "noTrackingDescription": "We don't track your activity or collect data.",
+    "openSource": "Open Source",
+    "openSourceDescription": "The code is public and auditable."
+  },
+  "credits": {
+    "title": "Credits",
+    "developedBy": "Developed by",
+    "contributors": "Contributors",
+    "thanksTo": "Thanks to"
+  },
+  "legal": {
+    "title": "Legal Information",
+    "license": "License",
+    "privacy": "Privacy",
+    "terms": "Terms of Use"
+  }
+}

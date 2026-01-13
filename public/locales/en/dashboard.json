@@ -1,0 +1,42 @@
+{
+  "title": "Dashboard",
+  "welcome": "Hello",
+  "subtitle": "Real-time business overview",
+  "quickTip": "Quick Tip",
+  "tipMessage": "Use keyboard shortcuts to navigate faster between modules.",
+  "kpis": {
+    "todaySales": "Today's Sales",
+    "totalRevenue": "Total Revenue",
+    "inventory": "Inventory",
+    "averageTicket": "Average Ticket",
+    "trend": "Trend",
+    "stable": "Stable",
+    "general": "General",
+    "alert": "Alert",
+    "ok": "OK",
+    "low": "low",
+    "healthyStock": "Healthy Stock"
+  },
+  "charts": {
+    "revenueChart": "Revenue Chart",
+    "topProducts": "Top Products",
+    "paymentMethods": "Payment Methods",
+    "noActivity": "No recent activity",
+    "noActivityMessage": "Your revenue chart will come to life when you record your first sale."
+  },
+  "quickActions": {
+    "title": "Quick Actions",
+    "quickPOS": "Quick POS",
+    "newSale": "New Sale",
+    "addProduct": "Add Product",
+    "viewReports": "View Reports"
+  },
+  "recentSales": {
+    "title": "Recent Sales",
+    "noSales": "No sales recorded",
+    "sale": "Sale",
+    "date": "Date",
+    "total": "Total",
+    "method": "Method"
+  }
+}

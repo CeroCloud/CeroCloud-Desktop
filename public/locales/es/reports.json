@@ -1,0 +1,64 @@
+{
+  "title": "Reportes",
+  "subtitle": "Análisis y estadísticas",
+  "period": {
+    "title": "Periodo del Reporte",
+    "today": "Hoy",
+    "week": "Esta Semana",
+    "month": "Este Mes",
+    "all": "Todo el Tiempo",
+    "custom": "Personalizado"
+  },
+  "export": {
+    "title": "Exportar Reportes",
+    "description": "Descarga tus reportes",
+    "sales": "Reporte de Ventas",
+    "inventory": "Reporte de Inventario",
+    "products": "Reporte de Productos",
+    "financial": "Reporte Financiero",
+    "excel": "Exportar a Excel",
+    "pdf": "Exportar a PDF",
+    "csv": "Exportar a CSV"
+  },
+  "sales": {
+    "title": "Ventas",
+    "totalSales": "Total de Ventas",
+    "totalRevenue": "Ingresos Totales",
+    "averageTicket": "Ticket Promedio",
+    "bestSellingProducts": "Productos Más Vendidos",
+    "salesByMethod": "Ventas por Método de Pago",
+    "salesByDay": "Ventas por Día",
+    "salesByHour": "Ventas por Hora"
+  },
+  "inventory": {
+    "title": "Inventario",
+    "totalProducts": "Total de Productos",
+    "totalValue": "Valor Total",
+    "lowStock": "Stock Bajo",
+    "outOfStock": "Sin Stock",
+    "topProducts": "Productos Principales",
+    "categories": "Categorías"
+  },
+  "financial": {
+    "title": "Financiero",
+    "revenue": "Ingresos",
+    "costs": "Costos",
+    "profit": "Ganancia",
+    "margin": "Margen",
+    "expenses": "Gastos",
+    "balance": "Balance"
+  },
+  "charts": {
+    "salesTrend": "Tendencia de Ventas",
+    "revenueTrend": "Tendencia de Ingresos",
+    "profitMargin": "Margen de Ganancia",
+    "comparison": "Comparación"
+  },
+  "filters": {
+    "dateRange": "Rango de Fechas",
+    "category": "Categoría",
+    "paymentMethod": "Método de Pago",
+    "client": "Cliente",
+    "product": "Producto"
+  }
+}

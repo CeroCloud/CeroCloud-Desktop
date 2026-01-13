@@ -1,0 +1,98 @@
+{
+  "app": {
+    "name": "CeroCloud",
+    "tagline": "Sin Nube. Sin Límites.",
+    "version": "Versión",
+    "release": "LANZAMIENTO"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "inventory": "Inventario",
+    "sales": "Ventas",
+    "suppliers": "Proveedores",
+    "clients": "Clientes",
+    "reports": "Reportes",
+    "settings": "Configuración",
+    "about": "Acerca de"
+  },
+  "shortcuts": {
+    "dashboard": "D",
+    "inventory": "I",
+    "sales": "V",
+    "suppliers": "P",
+    "clients": "C",
+    "reports": "R",
+    "settings": "S",
+    "about": "A"
+  },
+  "actions": {
+    "add": "Agregar",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "close": "Cerrar",
+    "search": "Buscar",
+    "filter": "Filtrar",
+    "export": "Exportar",
+    "import": "Importar",
+    "refresh": "Actualizar",
+    "clear": "Limpiar",
+    "apply": "Aplicar",
+    "reset": "Restablecer",
+    "back": "Atrás",
+    "next": "Siguiente",
+    "previous": "Anterior",
+    "finish": "Finalizar",
+    "download": "Descargar",
+    "upload": "Subir",
+    "print": "Imprimir",
+    "copy": "Copiar",
+    "new": "Nuevo"
+  },
+  "status": {
+    "loading": "Cargando...",
+    "saving": "Guardando...",
+    "saved": "Guardado",
+    "error": "Error",
+    "success": "Éxito",
+    "warning": "Advertencia",
+    "info": "Información",
+    "processing": "Procesando...",
+    "completed": "Completado",
+    "pending": "Pendiente",
+    "active": "Activo",
+    "inactive": "Inactivo"
+  },
+  "messages": {
+    "noData": "No hay datos disponibles",
+    "noResults": "No se encontraron resultados",
+    "confirmDelete": "¿Estás seguro de que quieres eliminar este elemento?",
+    "deleteSuccess": "Elemento eliminado correctamente",
+    "saveSuccess": "Cambios guardados correctamente",
+    "error": "Ocurrió un error",
+    "required": "Este campo es obligatorio",
+    "invalidFormat": "Formato inválido",
+    "selectOption": "Selecciona una opción"
+  },
+  "time": {
+    "today": "Hoy",
+    "yesterday": "Ayer",
+    "week": "Semana",
+    "month": "Mes",
+    "year": "Año",
+    "all": "Todo",
+    "custom": "Personalizado",
+    "date": "Fecha",
+    "time": "Hora",
+    "period": "Periodo"
+  },
+  "user": {
+    "user": "Usuario",
+    "administrator": "Administrador",
+    "profile": "Perfil",
+    "logout": "Cerrar Sesión",
+    "preferences": "Preferencias"
+  }
+}
