@@ -1,0 +1,50 @@
+{
+  "title": "Suppliers",
+  "subtitle": "Manage your suppliers",
+  "addSupplier": "Add Supplier",
+  "editSupplier": "Edit Supplier",
+  "deleteSupplier": "Delete Supplier",
+  "searchPlaceholder": "Search suppliers by name, email, or phone...",
+  "form": {
+    "companyInfo": "Company Information",
+    "contactInfo": "Contact Information",
+    "additionalInfo": "Additional Information",
+    "companyName": "Company Name",
+    "contactName": "Contact Name",
+    "email": "Email",
+    "phone": "Phone",
+    "address": "Address",
+    "city": "City",
+    "state": "State",
+    "zipCode": "ZIP Code",
+    "country": "Country",
+    "taxId": "Tax ID",
+    "website": "Website",
+    "notes": "Notes",
+    "paymentTerms": "Payment Terms",
+    "category": "Category"
+  },
+  "table": {
+    "companyName": "Company Name",
+    "contactName": "Contact Name",
+    "email": "Email",
+    "phone": "Phone",
+    "category": "Category",
+    "totalOrders": "Total Orders",
+    "lastOrder": "Last Order",
+    "actions": "Actions"
+  },
+  "stats": {
+    "totalSuppliers": "Total Suppliers",
+    "activeSuppliers": "Active Suppliers",
+    "newThisMonth": "New This Month",
+    "topSuppliers": "Top Suppliers"
+  },
+  "messages": {
+    "supplierAdded": "Supplier added successfully",
+    "supplierUpdated": "Supplier updated successfully",
+    "supplierDeleted": "Supplier deleted successfully",
+    "confirmDelete": "Are you sure you want to delete this supplier?",
+    "noSuppliers": "No suppliers found"
+  }
+}

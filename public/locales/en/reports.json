@@ -1,0 +1,64 @@
+{
+  "title": "Reports",
+  "subtitle": "Analysis and statistics",
+  "period": {
+    "title": "Report Period",
+    "today": "Today",
+    "week": "This Week",
+    "month": "This Month",
+    "all": "All Time",
+    "custom": "Custom"
+  },
+  "export": {
+    "title": "Export Reports",
+    "description": "Download your reports",
+    "sales": "Sales Report",
+    "inventory": "Inventory Report",
+    "products": "Products Report",
+    "financial": "Financial Report",
+    "excel": "Export to Excel",
+    "pdf": "Export to PDF",
+    "csv": "Export to CSV"
+  },
+  "sales": {
+    "title": "Sales",
+    "totalSales": "Total Sales",
+    "totalRevenue": "Total Revenue",
+    "averageTicket": "Average Ticket",
+    "bestSellingProducts": "Best Selling Products",
+    "salesByMethod": "Sales by Payment Method",
+    "salesByDay": "Sales by Day",
+    "salesByHour": "Sales by Hour"
+  },
+  "inventory": {
+    "title": "Inventory",
+    "totalProducts": "Total Products",
+    "totalValue": "Total Value",
+    "lowStock": "Low Stock",
+    "outOfStock": "Out of Stock",
+    "topProducts": "Top Products",
+    "categories": "Categories"
+  },
+  "financial": {
+    "title": "Financial",
+    "revenue": "Revenue",
+    "costs": "Costs",
+    "profit": "Profit",
+    "margin": "Margin",
+    "expenses": "Expenses",
+    "balance": "Balance"
+  },
+  "charts": {
+    "salesTrend": "Sales Trend",
+    "revenueTrend": "Revenue Trend",
+    "profitMargin": "Profit Margin",
+    "comparison": "Comparison"
+  },
+  "filters": {
+    "dateRange": "Date Range",
+    "category": "Category",
+    "paymentMethod": "Payment Method",
+    "client": "Client",
+    "product": "Product"
+  }
+}

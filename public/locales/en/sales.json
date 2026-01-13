@@ -1,0 +1,64 @@
+{
+  "title": "Sales (POS)",
+  "subtitle": "Point of Sale",
+  "newSale": "New Sale",
+  "ticket": "Ticket",
+  "cart": {
+    "empty": "Empty Cart",
+    "items": "Items",
+    "subtotal": "Subtotal",
+    "tax": "Tax",
+    "discount": "Discount",
+    "total": "Total",
+    "clear": "Clear Cart",
+    "addNote": "Add Note",
+    "note": "Note"
+  },
+  "product": {
+    "searchPlaceholder": "Search products...",
+    "addToCart": "Add to Cart",
+    "outOfStock": "Out of Stock",
+    "lowStock": "Low Stock",
+    "inStock": "In Stock",
+    "price": "Price",
+    "stock": "Stock"
+  },
+  "payment": {
+    "title": "Payment",
+    "method": "Payment Method",
+    "cash": "Cash",
+    "card": "Card",
+    "transfer": "Transfer",
+    "other": "Other",
+    "amountReceived": "Amount Received",
+    "change": "Change",
+    "processSale": "Process Sale",
+    "print": "Print Receipt"
+  },
+  "client": {
+    "selectClient": "Select Client",
+    "newClient": "New Client",
+    "optional": "Optional",
+    "search": "Search client..."
+  },
+  "tabs": {
+    "newTab": "New Tab",
+    "closeTab": "Close Tab",
+    "limitReached": "Limit reached",
+    "maxTabs": "Maximum 5 tabs"
+  },
+  "messages": {
+    "saleCompleted": "Sale completed successfully",
+    "saleError": "Error processing sale",
+    "emptyCart": "The cart is empty",
+    "insufficientStock": "Insufficient stock",
+    "invalidAmount": "Invalid amount",
+    "printSuccess": "Receipt printed successfully"
+  },
+  "quickActions": {
+    "scanBarcode": "Scan Barcode",
+    "addDiscount": "Add Discount",
+    "addClient": "Add Client",
+    "viewHistory": "View History"
+  }
+}

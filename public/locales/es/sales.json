@@ -1,0 +1,64 @@
+{
+  "title": "Ventas (POS)",
+  "subtitle": "Punto de Venta",
+  "newSale": "Nueva Venta",
+  "ticket": "Ticket",
+  "cart": {
+    "empty": "Carrito Vacío",
+    "items": "Artículos",
+    "subtotal": "Subtotal",
+    "tax": "Impuesto",
+    "discount": "Descuento",
+    "total": "Total",
+    "clear": "Vaciar Carrito",
+    "addNote": "Agregar Nota",
+    "note": "Nota"
+  },
+  "product": {
+    "searchPlaceholder": "Buscar productos...",
+    "addToCart": "Agregar al Carrito",
+    "outOfStock": "Sin Stock",
+    "lowStock": "Stock Bajo",
+    "inStock": "En Stock",
+    "price": "Precio",
+    "stock": "Stock"
+  },
+  "payment": {
+    "title": "Pago",
+    "method": "Método de Pago",
+    "cash": "Efectivo",
+    "card": "Tarjeta",
+    "transfer": "Transferencia",
+    "other": "Otro",
+    "amountReceived": "Monto Recibido",
+    "change": "Cambio",
+    "processSale": "Procesar Venta",
+    "print": "Imprimir Ticket"
+  },
+  "client": {
+    "selectClient": "Seleccionar Cliente",
+    "newClient": "Nuevo Cliente",
+    "optional": "Opcional",
+    "search": "Buscar cliente..."
+  },
+  "tabs": {
+    "newTab": "Nueva Pestaña",
+    "closeTab": "Cerrar Pestaña",
+    "limitReached": "Límite alcanzado",
+    "maxTabs": "Máximo 5 pestañas"
+  },
+  "messages": {
+    "saleCompleted": "Venta completada correctamente",
+    "saleError": "Error al procesar la venta",
+    "emptyCart": "El carrito está vacío",
+    "insufficientStock": "Stock insuficiente",
+    "invalidAmount": "Monto inválido",
+    "printSuccess": "Ticket impreso correctamente"
+  },
+  "quickActions": {
+    "scanBarcode": "Escanear Código de Barras",
+    "addDiscount": "Agregar Descuento",
+    "addClient": "Agregar Cliente",
+    "viewHistory": "Ver Historial"
+  }
+}

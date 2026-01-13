@@ -1,0 +1,85 @@
+{
+  "title": "Settings",
+  "subtitle": "Configure your application",
+  "tabs": {
+    "company": "Company",
+    "sales": "Sales & POS",
+    "inventory": "Inventory",
+    "backups": "Backups",
+    "appearance": "Appearance",
+    "system": "System"
+  },
+  "company": {
+    "title": "Company Information",
+    "name": "Company Name",
+    "logo": "Logo",
+    "address": "Address",
+    "phone": "Phone",
+    "email": "Email",
+    "taxId": "Tax ID",
+    "website": "Website",
+    "uploadLogo": "Upload Logo",
+    "changeLogo": "Change Logo"
+  },
+  "sales": {
+    "title": "Sales Configuration",
+    "currency": "Currency",
+    "currencySymbol": "Currency Symbol",
+    "taxRate": "Tax Rate",
+    "paymentMethods": "Payment Methods",
+    "enableCash": "Enable Cash",
+    "enableCard": "Enable Card",
+    "enableTransfer": "Enable Transfer",
+    "printReceipt": "Print Receipt Automatically",
+    "receiptTemplate": "Receipt Template"
+  },
+  "inventory": {
+    "title": "Inventory Configuration",
+    "lowStockAlert": "Low Stock Alert",
+    "lowStockThreshold": "Low Stock Threshold",
+    "enableBarcode": "Enable Barcode Scanner",
+    "autoUpdateStock": "Auto Update Stock",
+    "trackCosts": "Track Costs"
+  },
+  "backups": {
+    "title": "Backups",
+    "autoBackup": "Automatic Backup",
+    "backupFrequency": "Backup Frequency",
+    "lastBackup": "Last Backup",
+    "createBackup": "Create Backup",
+    "restoreBackup": "Restore Backup",
+    "downloadBackup": "Download Backup",
+    "daily": "Daily",
+    "weekly": "Weekly",
+    "monthly": "Monthly",
+    "never": "Never"
+  },
+  "appearance": {
+    "title": "Appearance",
+    "theme": "Theme",
+    "light": "Light",
+    "dark": "Dark",
+    "auto": "Auto",
+    "language": "Language",
+    "fontSize": "Font Size",
+    "compactMode": "Compact Mode"
+  },
+  "system": {
+    "title": "System",
+    "version": "Version",
+    "checkUpdates": "Check for Updates",
+    "autoUpdate": "Automatic Updates",
+    "database": "Database",
+    "clearCache": "Clear Cache",
+    "resetSettings": "Reset Settings",
+    "about": "About"
+  },
+  "messages": {
+    "settingsSaved": "Settings saved successfully",
+    "backupCreated": "Backup created successfully",
+    "backupRestored": "Backup restored successfully",
+    "updateAvailable": "Update available",
+    "noUpdates": "No updates available",
+    "confirmReset": "Are you sure you want to reset all settings?"
+  }
+}

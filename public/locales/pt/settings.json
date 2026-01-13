@@ -1,0 +1,85 @@
+{
+  "title": "Configurações",
+  "subtitle": "Configure seu aplicativo",
+  "tabs": {
+    "company": "Empresa",
+    "sales": "Vendas e PDV",
+    "inventory": "Inventário",
+    "backups": "Backups",
+    "appearance": "Aparência",
+    "system": "Sistema"
+  },
+  "company": {
+    "title": "Informações da Empresa",
+    "name": "Nome da Empresa",
+    "logo": "Logo",
+    "address": "Endereço",
+    "phone": "Telefone",
+    "email": "E-mail",
+    "taxId": "CNPJ/CPF",
+    "website": "Site",
+    "uploadLogo": "Enviar Logo",
+    "changeLogo": "Alterar Logo"
+  },
+  "sales": {
+    "title": "Configuração de Vendas",
+    "currency": "Moeda",
+    "currencySymbol": "Símbolo da Moeda",
+    "taxRate": "Taxa de Imposto",
+    "paymentMethods": "Métodos de Pagamento",
+    "enableCash": "Habilitar Dinheiro",
+    "enableCard": "Habilitar Cartão",
+    "enableTransfer": "Habilitar Transferência",
+    "printReceipt": "Imprimir Cupom Automaticamente",
+    "receiptTemplate": "Modelo de Cupom"
+  },
+  "inventory": {
+    "title": "Configuração de Inventário",
+    "lowStockAlert": "Alerta de Estoque Baixo",
+    "lowStockThreshold": "Limite de Estoque Baixo",
+    "enableBarcode": "Habilitar Leitor de Código de Barras",
+    "autoUpdateStock": "Atualizar Estoque Automaticamente",
+    "trackCosts": "Rastrear Custos"
+  },
+  "backups": {
+    "title": "Backups",
+    "autoBackup": "Backup Automático",
+    "backupFrequency": "Frequência de Backup",
+    "lastBackup": "Último Backup",
+    "createBackup": "Criar Backup",
+    "restoreBackup": "Restaurar Backup",
+    "downloadBackup": "Baixar Backup",
+    "daily": "Diário",
+    "weekly": "Semanal",
+    "monthly": "Mensal",
+    "never": "Nunca"
+  },
+  "appearance": {
+    "title": "Aparência",
+    "theme": "Tema",
+    "light": "Claro",
+    "dark": "Escuro",
+    "auto": "Automático",
+    "language": "Idioma",
+    "fontSize": "Tamanho da Fonte",
+    "compactMode": "Modo Compacto"
+  },
+  "system": {
+    "title": "Sistema",
+    "version": "Versão",
+    "checkUpdates": "Verificar Atualizações",
+    "autoUpdate": "Atualizações Automáticas",
+    "database": "Banco de Dados",
+    "clearCache": "Limpar Cache",
+    "resetSettings": "Redefinir Configurações",
+    "about": "Sobre"
+  },
+  "messages": {
+    "settingsSaved": "Configurações salvas com sucesso",
+    "backupCreated": "Backup criado com sucesso",
+    "backupRestored": "Backup restaurado com sucesso",
+    "updateAvailable": "Atualização disponível",
+    "noUpdates": "Nenhuma atualização disponível",
+    "confirmReset": "Tem certeza de que deseja redefinir todas as configurações?"
+  }
+}

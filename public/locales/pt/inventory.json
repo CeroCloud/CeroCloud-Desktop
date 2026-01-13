@@ -1,0 +1,68 @@
+{
+  "title": "Inventário",
+  "subtitle": "Gerencie seus produtos e estoque",
+  "addProduct": "Adicionar Produto",
+  "editProduct": "Editar Produto",
+  "deleteProduct": "Excluir Produto",
+  "searchPlaceholder": "Pesquisar produtos por nome, código ou categoria...",
+  "filters": {
+    "all": "Todos",
+    "lowStock": "Estoque Baixo",
+    "outOfStock": "Sem Estoque",
+    "category": "Categoria",
+    "supplier": "Fornecedor"
+  },
+  "table": {
+    "image": "Imagem",
+    "code": "Código",
+    "name": "Nome",
+    "category": "Categoria",
+    "price": "Preço",
+    "cost": "Custo",
+    "stock": "Estoque",
+    "minStock": "Estoque Mínimo",
+    "actions": "Ações",
+    "noImage": "Sem imagem"
+  },
+  "form": {
+    "basicInfo": "Informações Básicas",
+    "pricing": "Preços",
+    "stock": "Estoque",
+    "productName": "Nome do Produto",
+    "productCode": "Código do Produto",
+    "description": "Descrição",
+    "category": "Categoria",
+    "salePrice": "Preço de Venda",
+    "costPrice": "Preço de Custo",
+    "currentStock": "Estoque Atual",
+    "minimumStock": "Estoque Mínimo",
+    "supplier": "Fornecedor",
+    "image": "Imagem",
+    "uploadImage": "Enviar Imagem",
+    "changeImage": "Alterar Imagem"
+  },
+  "stats": {
+    "totalProducts": "Total de Produtos",
+    "lowStockItems": "Produtos com Estoque Baixo",
+    "outOfStockItems": "Produtos Sem Estoque",
+    "totalValue": "Valor Total do Inventário"
+  },
+  "messages": {
+    "productAdded": "Produto adicionado com sucesso",
+    "productUpdated": "Produto atualizado com sucesso",
+    "productDeleted": "Produto excluído com sucesso",
+    "confirmDelete": "Tem certeza de que deseja excluir este produto?",
+    "noProducts": "Nenhum produto encontrado",
+    "stockAlert": "Alerta de Estoque",
+    "lowStockWarning": "Este produto tem estoque baixo"
+  },
+  "import": {
+    "title": "Importar Produtos",
+    "subtitle": "Importe produtos de um arquivo",
+    "selectFile": "Selecionar Arquivo",
+    "downloadTemplate": "Baixar Modelo",
+    "importButton": "Importar",
+    "success": "Produtos importados com sucesso",
+    "error": "Erro ao importar produtos"
+  }
+}

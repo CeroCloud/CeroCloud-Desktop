@@ -1,0 +1,42 @@
+{
+  "title": "Dashboard",
+  "welcome": "Hola",
+  "subtitle": "Resumen de tu negocio en tiempo real",
+  "quickTip": "Consejo Rápido",
+  "tipMessage": "Usa los atajos de teclado para navegar más rápido entre módulos.",
+  "kpis": {
+    "todaySales": "Ventas de Hoy",
+    "totalRevenue": "Ingresos Totales",
+    "inventory": "Inventario",
+    "averageTicket": "Ticket Promedio",
+    "trend": "Tendencia",
+    "stable": "Estable",
+    "general": "General",
+    "alert": "Alerta",
+    "ok": "OK",
+    "low": "bajos",
+    "healthyStock": "Stock Sano"
+  },
+  "charts": {
+    "revenueChart": "Gráfica de Ingresos",
+    "topProducts": "Productos Más Vendidos",
+    "paymentMethods": "Métodos de Pago",
+    "noActivity": "Sin actividad reciente",
+    "noActivityMessage": "Tu gráfica de ingresos cobrará vida cuando registres tu primera venta."
+  },
+  "quickActions": {
+    "title": "Acciones Rápidas",
+    "quickPOS": "POS Rápido",
+    "newSale": "Nueva Venta",
+    "addProduct": "Agregar Producto",
+    "viewReports": "Ver Reportes"
+  },
+  "recentSales": {
+    "title": "Ventas Recientes",
+    "noSales": "No hay ventas registradas",
+    "sale": "Venta",
+    "date": "Fecha",
+    "total": "Total",
+    "method": "Método"
+  }
+}

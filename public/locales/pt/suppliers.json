@@ -1,0 +1,50 @@
+{
+  "title": "Fornecedores",
+  "subtitle": "Gerencie seus fornecedores",
+  "addSupplier": "Adicionar Fornecedor",
+  "editSupplier": "Editar Fornecedor",
+  "deleteSupplier": "Excluir Fornecedor",
+  "searchPlaceholder": "Pesquisar fornecedores por nome, e-mail ou telefone...",
+  "form": {
+    "companyInfo": "Informações da Empresa",
+    "contactInfo": "Informações de Contato",
+    "additionalInfo": "Informações Adicionais",
+    "companyName": "Nome da Empresa",
+    "contactName": "Nome do Contato",
+    "email": "E-mail",
+    "phone": "Telefone",
+    "address": "Endereço",
+    "city": "Cidade",
+    "state": "Estado",
+    "zipCode": "CEP",
+    "country": "País",
+    "taxId": "CNPJ",
+    "website": "Site",
+    "notes": "Notas",
+    "paymentTerms": "Condições de Pagamento",
+    "category": "Categoria"
+  },
+  "table": {
+    "companyName": "Nome da Empresa",
+    "contactName": "Nome do Contato",
+    "email": "E-mail",
+    "phone": "Telefone",
+    "category": "Categoria",
+    "totalOrders": "Total de Pedidos",
+    "lastOrder": "Último Pedido",
+    "actions": "Ações"
+  },
+  "stats": {
+    "totalSuppliers": "Total de Fornecedores",
+    "activeSuppliers": "Fornecedores Ativos",
+    "newThisMonth": "Novos este Mês",
+    "topSuppliers": "Melhores Fornecedores"
+  },
+  "messages": {
+    "supplierAdded": "Fornecedor adicionado com sucesso",
+    "supplierUpdated": "Fornecedor atualizado com sucesso",
+    "supplierDeleted": "Fornecedor excluído com sucesso",
+    "confirmDelete": "Tem certeza de que deseja excluir este fornecedor?",
+    "noSuppliers": "Nenhum fornecedor encontrado"
+  }
+}
