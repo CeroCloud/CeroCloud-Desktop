@@ -1,3 +1,10 @@
+# [1.2.0-beta.4](https://github.com/CeroCloud/CeroCloud-Desktop/compare/v1.2.0-beta.3...v1.2.0-beta.4) (2026-01-13)
+
+
+### Features
+
+* add new language files and structure ([c955a96](https://github.com/CeroCloud/CeroCloud-Desktop/commit/c955a965221fe70c7a94808d5f5f88422886a933))
+
 # [1.2.0-beta.3](https://github.com/CeroCloud/CeroCloud-Desktop/compare/v1.2.0-beta.2...v1.2.0-beta.3) (2026-01-10)
 
 
